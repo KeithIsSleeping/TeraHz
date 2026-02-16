@@ -25,7 +25,10 @@ class SiteContent extends React.Component {
             playlistIsPublic: true,
             showVibes: false,
             activeVibes: [],
-            trackLimit: 30
+            trackLimit: 30,
+            flyingTrack: null,
+            recsVisible: true,
+            playlistVisible: true
         };
 
         this.seedSongSelected = this.seedSongSelected.bind(this);
@@ -37,10 +40,67 @@ class SiteContent extends React.Component {
         this.removeTrackFromPlaylist = this.removeTrackFromPlaylist.bind(this);
         this.saveState = this.saveState.bind(this);
         this.clearPlaylist = this.clearPlaylist.bind(this);
+        this.handleScroll = this.handleScroll.bind(this);
+
+        this.layoutRef = React.createRef();
+        this.recsRef = React.createRef();
+        this.playlistRef = React.createRef();
     }
 
     componentDidMount() {
         this.restoreState();
+        this._scrollEl = null;
+        // Observe scroll to track section visibility
+        this._rafId = null;
+        requestAnimationFrame(() => {
+            this._scrollEl = this.layoutRef.current;
+            if (this._scrollEl) {
+                this._scrollEl.addEventListener('scroll', this.handleScroll, { passive: true });
+                // Also listen on window for mobile where mainLayout may not be the scroller
+                window.addEventListener('scroll', this.handleScroll, { passive: true });
+            }
+        });
+    }
+
+    componentWillUnmount() {
+        if (this._scrollEl) {
+            this._scrollEl.removeEventListener('scroll', this.handleScroll);
+        }
+        window.removeEventListener('scroll', this.handleScroll);
+        if (this._rafId) cancelAnimationFrame(this._rafId);
+    }
+
+    handleScroll() {
+        if (this._rafId) return;
+        this._rafId = requestAnimationFrame(() => {
+            this._rafId = null;
+            const vp = window.innerHeight;
+            let recsVis = true;
+            let plVis = true;
+            if (this.recsRef.current) {
+                const r = this.recsRef.current.getBoundingClientRect();
+                recsVis = r.top < vp && r.bottom > 0;
+            }
+            if (this.playlistRef.current) {
+                const r = this.playlistRef.current.getBoundingClientRect();
+                plVis = r.top < vp && r.bottom > 0;
+            }
+            if (recsVis !== this.state.recsVisible || plVis !== this.state.playlistVisible) {
+                this.setState({ recsVisible: recsVis, playlistVisible: plVis });
+            }
+        });
+    }
+
+    scrollToRecs() {
+        if (this.recsRef.current) {
+            this.recsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }
+
+    scrollToPlaylist() {
+        if (this.playlistRef.current) {
+            this.playlistRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
     }
 
     saveState() {
@@ -146,7 +206,9 @@ class SiteContent extends React.Component {
 
         backendRequest.get('getRecommendations?' + qs, (data) => {
             if (data && data.tracks) {
-                this.setState({ recommendedTracks: data.tracks, loadingRecommendations: false });
+                this.setState({ recommendedTracks: data.tracks, loadingRecommendations: false }, () => {
+                    this.scrollToRecs();
+                });
             } else {
                 this.setState({
                     loadingRecommendations: false,
@@ -156,16 +218,33 @@ class SiteContent extends React.Component {
         });
     }
 
-    addTrackToPlaylist(track) {
+    addTrackToPlaylist(track, evt) {
         if (!this.state.playlistTracks.find(t => t.id === track.id)) {
-            this.setState({ playlistTracks: [...this.state.playlistTracks, track] });
+            // Fly animation: capture the source position
+            if (evt && evt.currentTarget) {
+                const btn = evt.currentTarget;
+                const rect = btn.getBoundingClientRect();
+                this.setState({
+                    flyingTrack: {
+                        name: track.name,
+                        x: rect.left,
+                        y: rect.top
+                    }
+                });
+                setTimeout(() => this.setState({ flyingTrack: null }), 600);
+            }
+            this.setState(prev => ({
+                playlistTracks: [...prev.playlistTracks, track]
+            }));
         }
     }
 
     addAllToPlaylist() {
         const ids = new Set(this.state.playlistTracks.map(t => t.id));
         const add = this.state.recommendedTracks.filter(t => !ids.has(t.id));
-        this.setState({ playlistTracks: [...this.state.playlistTracks, ...add] });
+        this.setState({ playlistTracks: [...this.state.playlistTracks, ...add] }, () => {
+            this.scrollToPlaylist();
+        });
     }
 
     removeTrackFromPlaylist(trackId) {
@@ -228,7 +307,7 @@ class SiteContent extends React.Component {
                 {showAdd && (
                     <button
                         className={'trkAdd' + (inPlaylist ? ' trkAdded' : '')}
-                        onClick={() => this.addTrackToPlaylist(track)}
+                        onClick={(e) => this.addTrackToPlaylist(track, e)}
                         disabled={inPlaylist}
                     >
                         {inPlaylist ? '✓' : '+'}
@@ -334,15 +413,42 @@ class SiteContent extends React.Component {
             searchMode, songDeselected, artistDeselected,
             genreSeedList,
             recommendedTracks, loadingRecommendations, recommendationError,
-            playlistTracks, songSeedList, artistSeedList
+            playlistTracks, songSeedList, artistSeedList,
+            flyingTrack, recsVisible, playlistVisible
         } = this.state;
         const { authenticated, onLogin } = this.props;
         const totalSeeds = songSeedList.length + artistSeedList.length + genreSeedList.length;
         const showPlaylist = playlistTracks.length > 0;
         const isBlank = totalSeeds === 0 && recommendedTracks.length === 0 && playlistTracks.length === 0;
+        const hasRecs = recommendedTracks.length > 0;
 
         return (
-            <div className={"mainLayout" + (showPlaylist ? '' : ' singlePanel')}>
+            <div className={"mainLayout" + (showPlaylist ? '' : ' singlePanel')} ref={this.layoutRef}>
+                {/* FLYING TRACK ANIMATION */}
+                {flyingTrack && (
+                    <div className="flyTrack" style={{ left: flyingTrack.x, top: flyingTrack.y }}>
+                        <span className="flyTrackLabel">♪ {flyingTrack.name}</span>
+                    </div>
+                )}
+
+                {/* FLOATING SECTION NAV */}
+                {(hasRecs || showPlaylist) && (
+                    <div className="floatingNav">
+                        {hasRecs && !recsVisible && (
+                            <button className="floatingNavBtn floatingNavRecs" onClick={() => this.scrollToRecs()}>
+                                ♪ Recommendations
+                                <span className="floatingNavBadge">{recommendedTracks.length}</span>
+                            </button>
+                        )}
+                        {showPlaylist && !playlistVisible && (
+                            <button className="floatingNavBtn floatingNavPlaylist" onClick={() => this.scrollToPlaylist()}>
+                                ▶ Playlist
+                                <span className="floatingNavBadge">{playlistTracks.length}</span>
+                            </button>
+                        )}
+                    </div>
+                )}
+
                 {/* LEFT PANEL */}
                 <div className="panelLeft">
                     <div className="searchTabs">
@@ -398,7 +504,7 @@ class SiteContent extends React.Component {
                     )}
 
                     {/* Results */}
-                    <div className="resultsArea">
+                    <div className="resultsArea" ref={this.recsRef}>
                         {loadingRecommendations && <div className="rMsg"><span className="spin"></span> Finding tracks...</div>}
                         {recommendationError && <div className="rMsg rErr">{recommendationError}</div>}
                         {!loadingRecommendations && !recommendationError && recommendedTracks.length > 0 && (
@@ -429,7 +535,7 @@ class SiteContent extends React.Component {
 
                 {/* RIGHT PANEL — only when playlist has tracks */}
                 {showPlaylist && (
-                    <div className="panelRight panelReveal">
+                    <div className="panelRight panelReveal" ref={this.playlistRef}>
                         <PlaylistBuilder
                             playlistTracks={playlistTracks}
                             authenticated={authenticated}
