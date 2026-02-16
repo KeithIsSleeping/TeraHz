@@ -1633,15 +1633,20 @@ button { cursor: pointer; }
         overflow-x: hidden;
     }
     .panelLeft {
-        flex: none;                /* don't flex-grow; let it size to content */
-        overflow: visible;         /* children flow naturally in the scroll */
+        flex: none;
+        overflow-x: hidden;        /* clip horizontal overflow */
+        overflow-y: visible;       /* children flow naturally in the vertical scroll */
         border-right: none;
         min-height: 0;
+        width: 100%;
+        max-width: 100vw;
+        box-sizing: border-box;
     }
     .panelRight {
         width: 100%;
         border-top: 1px solid var(--border);
         flex: none;
+        box-sizing: border-box;
     }
 
     /* Reduce search area on mobile */
@@ -1653,6 +1658,8 @@ button { cursor: pointer; }
     .seedPills {
         max-height: 90px;
         overflow-y: auto;
+        overflow-x: hidden;
+        box-sizing: border-box;
     }
 
     /* Results flow in the page scroll instead of their own scroll */
@@ -1660,6 +1667,8 @@ button { cursor: pointer; }
         flex: none;
         overflow: visible;
         min-height: 200px;
+        width: 100%;
+        box-sizing: border-box;
     }
 
     /* Track list flows naturally */
@@ -1683,13 +1692,28 @@ button { cursor: pointer; }
         flex-wrap: wrap;
         gap: 6px;
         padding: 8px 12px;
-        position: relative;       /* don't sticky on mobile — it can overlap */
+        position: relative;
+        box-sizing: border-box;
     }
 
-    /* Track rows: tighter padding, hide duration to save space */
+    /* Hint text wrapping */
+    .rHint {
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+
+    /* Track rows: constrain to viewport */
     .trkRow {
         padding: 6px 10px;
         gap: 8px;
+        max-width: 100%;
+        box-sizing: border-box;
+        overflow: hidden;
+    }
+
+    .trkInfo {
+        min-width: 0;
+        overflow: hidden;
     }
 
     .trkDur {
@@ -1703,6 +1727,9 @@ button { cursor: pointer; }
 
     .trkName {
         font-size: 12px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .trkArtist {
@@ -1715,13 +1742,29 @@ button { cursor: pointer; }
         font-size: 14px;
     }
 
-    /* Generate row: stack vertically if needed */
+    /* Tune bar / generate button */
+    .tuneBar {
+        box-sizing: border-box;
+        padding: 8px 10px;
+    }
+
     .genRow {
         flex-wrap: wrap;
+        box-sizing: border-box;
     }
 
     .genBtnFull {
         font-size: 13px;
         padding: 10px 16px;
+    }
+
+    /* Vibe section containment */
+    .vibeSection {
+        box-sizing: border-box;
+        overflow: hidden;
+    }
+
+    .vibeGrid {
+        overflow: hidden;
     }
 }
