@@ -105,19 +105,29 @@ class SiteContent extends React.Component {
     scrollToSeeds() {
         if (this.seedsRef.current) {
             this.seedsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            this._scheduleScrollRecheck();
         }
     }
 
     scrollToRecs() {
         if (this.recsRef.current) {
             this.recsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            this._scheduleScrollRecheck();
         }
     }
 
     scrollToPlaylist() {
         if (this.playlistRef.current) {
             this.playlistRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            this._scheduleScrollRecheck();
         }
+    }
+
+    _scheduleScrollRecheck() {
+        // Force re-check visibility after smooth scroll settles
+        [150, 350, 600].forEach(ms => {
+            setTimeout(() => { this._rafId = null; this.handleScroll(); }, ms);
+        });
     }
 
     saveState() {
