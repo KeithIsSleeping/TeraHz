@@ -480,6 +480,7 @@ class SiteContent extends React.Component {
                 {/* LEFT PANEL */}
                 <div className="panelLeft">
                     <div className="seedsSection" ref={this.seedsRef}>
+                    <div className="mobileSectionLabel">Search &amp; Pick Seeds</div>
                     <div className="searchTabs">
                         {['song', 'artist', 'genre'].map(m => (
                             <button

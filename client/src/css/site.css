@@ -1634,6 +1634,10 @@ button { cursor: pointer; }
     display: none;                /* hidden on desktop */
 }
 
+.mobileSectionLabel {
+    display: none;                /* hidden on desktop */
+}
+
 /* ============================================================
    FLYING TRACK ANIMATION
    ============================================================ */
@@ -1685,6 +1689,17 @@ button { cursor: pointer; }
         overflow-y: auto;          /* allow the whole layout to scroll */
         overflow-x: hidden;
     }
+
+    .mobileSectionLabel {
+        display: block;
+        padding: 12px 14px 4px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--txt3);
+    }
+
     .panelLeft {
         flex: none;
         overflow-x: hidden;        /* clip horizontal overflow */
@@ -1702,17 +1717,73 @@ button { cursor: pointer; }
         box-sizing: border-box;
     }
 
-    /* Reduce search area on mobile */
+    /* Reduce search area on mobile — clear scroll boundary */
     .searchArea {
-        max-height: 240px;
+        max-height: 220px;
+        margin: 0 10px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        position: relative;
+        background: var(--bg2);
+    }
+
+    /* Fade hint at the bottom of the search scroll box */
+    .searchArea::after {
+        content: '';
+        position: sticky;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        display: block;
+        height: 28px;
+        background: linear-gradient(transparent, var(--bg2));
+        pointer-events: none;
+        border-radius: 0 0 var(--radius) var(--radius);
+    }
+
+    .searchBoxContainer {
+        padding: 10px 12px;
+    }
+
+    .searchBox {
+        height: 38px;
+        font-size: 13px;
+    }
+
+    .searchResult {
+        width: 100px;
+        height: 100px;
+        margin: 4px;
+    }
+
+    .tileName {
+        font-size: 11px;
+    }
+
+    .tileArtist {
+        font-size: 9px;
     }
 
     /* Cap seed pills so they don't push everything off-screen */
     .seedPills {
-        max-height: 90px;
+        max-height: 80px;
         overflow-y: auto;
         overflow-x: hidden;
         box-sizing: border-box;
+        margin: 0 10px;
+        padding: 8px 12px;
+        border-radius: var(--radius);
+        background: var(--bg2);
+        border: 1px solid var(--border);
+    }
+
+    .seedPillsLabel {
+        font-size: 10px;
+    }
+
+    .pill {
+        font-size: 11px;
+        padding: 3px 8px;
     }
 
     /* Results flow in the page scroll instead of their own scroll */
