@@ -1630,6 +1630,10 @@ button { cursor: pointer; }
     display: none;                /* hidden on desktop */
 }
 
+.playlistFooter {
+    display: none;                /* hidden on desktop */
+}
+
 /* ============================================================
    FLYING TRACK ANIMATION
    ============================================================ */
@@ -1886,6 +1890,64 @@ button { cursor: pointer; }
         color: #fff;
         backdrop-filter: blur(16px);
         -webkit-backdrop-filter: blur(16px);
+    }
+
+    /* Playlist fixed footer bar */
+    .playlistFooter {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 95;
+        padding: 12px 18px;
+        background: rgba(139, 92, 246, .92);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        color: #fff;
+        cursor: pointer;
+        font-family: inherit;
+        border-top: 1px solid rgba(255,255,255,.15);
+        box-shadow: 0 -4px 20px rgba(0,0,0,.4);
+        animation: footerSlideUp .3s ease;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .playlistFooter:active {
+        background: rgba(139, 92, 246, 1);
+    }
+
+    .playlistFooterIcon {
+        font-size: 16px;
+    }
+
+    .playlistFooterLabel {
+        font-size: 14px;
+        font-weight: 700;
+    }
+
+    .playlistFooterBadge {
+        margin-left: auto;
+        font-size: 12px;
+        font-weight: 600;
+        opacity: .85;
+    }
+
+    .playlistFooterArrow {
+        font-size: 14px;
+        animation: footerBounce 1.5s ease infinite;
+    }
+
+    @keyframes footerSlideUp {
+        from { transform: translateY(100%); opacity: 0; }
+        to   { transform: translateY(0);    opacity: 1; }
+    }
+
+    @keyframes footerBounce {
+        0%, 100% { transform: translateY(0); }
+        50%      { transform: translateY(3px); }
     }
 
     @keyframes stickySlideIn {

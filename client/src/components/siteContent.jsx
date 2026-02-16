@@ -29,7 +29,8 @@ class SiteContent extends React.Component {
             flyingTrack: null,
             seedsScrolledPast: false,
             recsScrolledPast: false,
-            playlistScrolledPast: false
+            playlistScrolledPast: false,
+            playlistInView: false
         };
 
         this.seedSongSelected = this.seedSongSelected.bind(this);
@@ -76,10 +77,12 @@ class SiteContent extends React.Component {
         if (this._rafId) return;
         this._rafId = requestAnimationFrame(() => {
             this._rafId = null;
+            const vp = window.innerHeight;
             // Track whether each section has been scrolled past (above the viewport)
             let seedsPast = false;
             let recsPast = false;
             let plPast = false;
+            let plInView = false;
             if (this.seedsRef.current) {
                 const r = this.seedsRef.current.getBoundingClientRect();
                 seedsPast = r.bottom <= 0;
@@ -91,9 +94,10 @@ class SiteContent extends React.Component {
             if (this.playlistRef.current) {
                 const r = this.playlistRef.current.getBoundingClientRect();
                 plPast = r.bottom <= 0;
+                plInView = r.top < vp && r.bottom > 0;
             }
-            if (seedsPast !== this.state.seedsScrolledPast || recsPast !== this.state.recsScrolledPast || plPast !== this.state.playlistScrolledPast) {
-                this.setState({ seedsScrolledPast: seedsPast, recsScrolledPast: recsPast, playlistScrolledPast: plPast });
+            if (seedsPast !== this.state.seedsScrolledPast || recsPast !== this.state.recsScrolledPast || plPast !== this.state.playlistScrolledPast || plInView !== this.state.playlistInView) {
+                this.setState({ seedsScrolledPast: seedsPast, recsScrolledPast: recsPast, playlistScrolledPast: plPast, playlistInView: plInView });
             }
         });
     }
@@ -430,7 +434,7 @@ class SiteContent extends React.Component {
             genreSeedList,
             recommendedTracks, loadingRecommendations, recommendationError,
             playlistTracks, songSeedList, artistSeedList,
-            flyingTrack, seedsScrolledPast, recsScrolledPast, playlistScrolledPast
+            flyingTrack, seedsScrolledPast, recsScrolledPast, playlistScrolledPast, playlistInView
         } = this.state;
         const { authenticated, onLogin } = this.props;
         const totalSeeds = songSeedList.length + artistSeedList.length + genreSeedList.length;
@@ -459,12 +463,6 @@ class SiteContent extends React.Component {
                         <button className="stickyHeader stickyRecs" onClick={() => this.scrollToRecs()}>
                             <span className="stickyIcon">♪</span> Recommendations
                             <span className="stickyBadge">{recommendedTracks.length}</span>
-                        </button>
-                    )}
-                    {showPlaylist && playlistScrolledPast && (
-                        <button className="stickyHeader stickyPlaylist" onClick={() => this.scrollToPlaylist()}>
-                            <span className="stickyIcon">▶</span> Playlist
-                            <span className="stickyBadge">{playlistTracks.length}</span>
                         </button>
                     )}
                 </div>
@@ -571,6 +569,16 @@ class SiteContent extends React.Component {
                             onDescChange={(v) => this.setState({ playlistDescription: v })}
                             onPublicChange={(v) => this.setState({ playlistIsPublic: v })}
                         />
+                    </div>
+                )}
+
+                {/* PLAYLIST FOOTER BAR (mobile) — visible when playlist has tracks but section is not in view */}
+                {showPlaylist && !playlistInView && (
+                    <div className="playlistFooter" onClick={() => this.scrollToPlaylist()}>
+                        <span className="playlistFooterIcon">▶</span>
+                        <span className="playlistFooterLabel">Playlist</span>
+                        <span className="playlistFooterBadge">{playlistTracks.length} {playlistTracks.length === 1 ? 'track' : 'tracks'}</span>
+                        <span className="playlistFooterArrow">↓</span>
                     </div>
                 )}
             </div>
