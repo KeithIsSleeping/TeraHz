@@ -27,6 +27,7 @@ class SiteContent extends React.Component {
             activeVibes: [],
             trackLimit: 30,
             flyingTrack: null,
+            seedsVisible: true,
             recsVisible: true,
             playlistVisible: true
         };
@@ -43,6 +44,7 @@ class SiteContent extends React.Component {
         this.handleScroll = this.handleScroll.bind(this);
 
         this.layoutRef = React.createRef();
+        this.seedsRef = React.createRef();
         this.recsRef = React.createRef();
         this.playlistRef = React.createRef();
     }
@@ -75,8 +77,13 @@ class SiteContent extends React.Component {
         this._rafId = requestAnimationFrame(() => {
             this._rafId = null;
             const vp = window.innerHeight;
+            let seedsVis = true;
             let recsVis = true;
             let plVis = true;
+            if (this.seedsRef.current) {
+                const r = this.seedsRef.current.getBoundingClientRect();
+                seedsVis = r.top < vp && r.bottom > 0;
+            }
             if (this.recsRef.current) {
                 const r = this.recsRef.current.getBoundingClientRect();
                 recsVis = r.top < vp && r.bottom > 0;
@@ -85,10 +92,16 @@ class SiteContent extends React.Component {
                 const r = this.playlistRef.current.getBoundingClientRect();
                 plVis = r.top < vp && r.bottom > 0;
             }
-            if (recsVis !== this.state.recsVisible || plVis !== this.state.playlistVisible) {
-                this.setState({ recsVisible: recsVis, playlistVisible: plVis });
+            if (seedsVis !== this.state.seedsVisible || recsVis !== this.state.recsVisible || plVis !== this.state.playlistVisible) {
+                this.setState({ seedsVisible: seedsVis, recsVisible: recsVis, playlistVisible: plVis });
             }
         });
+    }
+
+    scrollToSeeds() {
+        if (this.seedsRef.current) {
+            this.seedsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
     }
 
     scrollToRecs() {
@@ -417,7 +430,7 @@ class SiteContent extends React.Component {
             genreSeedList,
             recommendedTracks, loadingRecommendations, recommendationError,
             playlistTracks, songSeedList, artistSeedList,
-            flyingTrack, recsVisible, playlistVisible
+            flyingTrack, seedsVisible, recsVisible, playlistVisible
         } = this.state;
         const { authenticated, onLogin } = this.props;
         const totalSeeds = songSeedList.length + artistSeedList.length + genreSeedList.length;
@@ -434,26 +447,30 @@ class SiteContent extends React.Component {
                     </div>
                 )}
 
-                {/* FLOATING SECTION NAV */}
-                {(hasRecs || showPlaylist) && (
-                    <div className="floatingNav">
-                        {hasRecs && !recsVisible && (
-                            <button className="floatingNavBtn floatingNavRecs" onClick={() => this.scrollToRecs()}>
-                                ♪ Recommendations
-                                <span className="floatingNavBadge">{recommendedTracks.length}</span>
-                            </button>
-                        )}
-                        {showPlaylist && !playlistVisible && (
-                            <button className="floatingNavBtn floatingNavPlaylist" onClick={() => this.scrollToPlaylist()}>
-                                ▶ Playlist
-                                <span className="floatingNavBadge">{playlistTracks.length}</span>
-                            </button>
-                        )}
-                    </div>
-                )}
+                {/* COLLAPSED SECTION HEADERS (mobile) */}
+                <div className="stickyHeaders">
+                    {!seedsVisible && (
+                        <button className="stickyHeader stickySeeds" onClick={() => this.scrollToSeeds()}>
+                            <span className="stickyIcon">🎵</span> Seeds
+                            <span className="stickyBadge">{totalSeeds}</span>
+                        </button>
+                    )}
+                    {hasRecs && !recsVisible && (
+                        <button className="stickyHeader stickyRecs" onClick={() => this.scrollToRecs()}>
+                            <span className="stickyIcon">♪</span> Recommendations
+                            <span className="stickyBadge">{recommendedTracks.length}</span>
+                        </button>
+                    )}
+                    {showPlaylist && !playlistVisible && (
+                        <button className="stickyHeader stickyPlaylist" onClick={() => this.scrollToPlaylist()}>
+                            <span className="stickyIcon">▶</span> Playlist
+                            <span className="stickyBadge">{playlistTracks.length}</span>
+                        </button>
+                    )}
+                </div>
 
                 {/* LEFT PANEL */}
-                <div className="panelLeft">
+                <div className="panelLeft" ref={this.seedsRef}>
                     <div className="searchTabs">
                         {['song', 'artist', 'genre'].map(m => (
                             <button

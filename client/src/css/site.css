@@ -1623,74 +1623,11 @@ button { cursor: pointer; }
 }
 
 /* ============================================================
-   FLOATING SECTION NAV
+   STICKY COLLAPSED SECTION HEADERS (mobile only)
    ============================================================ */
 
-.floatingNav {
-    position: fixed;
-    bottom: 16px;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    gap: 8px;
-    z-index: 100;
-    pointer-events: none;
-    animation: floatNavIn .3s ease;
-}
-
-@keyframes floatNavIn {
-    from { opacity: 0; transform: translateX(-50%) translateY(20px); }
-    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
-}
-
-.floatingNavBtn {
-    pointer-events: auto;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 10px 18px;
-    border: none;
-    border-radius: 24px;
-    font-size: 13px;
-    font-weight: 700;
-    font-family: inherit;
-    cursor: pointer;
-    transition: all .2s;
-    box-shadow: 0 4px 20px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.08);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-}
-
-.floatingNavBtn:hover {
-    transform: scale(1.05);
-}
-
-.floatingNavBtn:active {
-    transform: scale(.97);
-}
-
-.floatingNavRecs {
-    background: rgba(29, 185, 84, .9);
-    color: #fff;
-}
-
-.floatingNavPlaylist {
-    background: rgba(139, 92, 246, .9);
-    color: #fff;
-}
-
-.floatingNavBadge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 20px;
-    height: 20px;
-    padding: 0 6px;
-    border-radius: 10px;
-    font-size: 11px;
-    font-weight: 800;
-    background: rgba(255,255,255,.25);
-    color: #fff;
+.stickyHeaders {
+    display: none;                /* hidden on desktop */
 }
 
 /* ============================================================
@@ -1880,22 +1817,80 @@ button { cursor: pointer; }
         overflow: hidden;
     }
 
-    /* Floating nav: tighter on mobile */
-    .floatingNav {
-        bottom: 12px;
-        gap: 6px;
-        max-width: calc(100vw - 24px);
+    /* Sticky collapsed section headers — mobile only */
+    .stickyHeaders {
+        display: flex;
+        flex-direction: column;
+        position: sticky;
+        top: 0;
+        z-index: 90;
+        gap: 0;
     }
 
-    .floatingNavBtn {
-        padding: 8px 14px;
-        font-size: 12px;
+    .stickyHeader {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+        padding: 10px 16px;
+        border: none;
+        border-bottom: 1px solid var(--border);
+        font-size: 13px;
+        font-weight: 700;
+        font-family: inherit;
+        cursor: pointer;
+        transition: background .2s;
+        box-sizing: border-box;
+        animation: stickySlideIn .25s ease;
     }
 
-    .floatingNavBadge {
-        min-width: 18px;
-        height: 18px;
-        font-size: 10px;
+    .stickyHeader:active {
+        filter: brightness(1.2);
+    }
+
+    .stickyIcon {
+        font-size: 14px;
+    }
+
+    .stickyBadge {
+        margin-left: auto;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 20px;
+        height: 20px;
+        padding: 0 6px;
+        border-radius: 10px;
+        font-size: 11px;
+        font-weight: 800;
+        background: rgba(255,255,255,.2);
+        color: #fff;
+    }
+
+    .stickySeeds {
+        background: rgba(255, 255, 255, .08);
+        color: var(--text);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+    }
+
+    .stickyRecs {
+        background: rgba(29, 185, 84, .85);
+        color: #fff;
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+    }
+
+    .stickyPlaylist {
+        background: rgba(139, 92, 246, .85);
+        color: #fff;
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+    }
+
+    @keyframes stickySlideIn {
+        from { opacity: 0; transform: translateY(-100%); }
+        to   { opacity: 1; transform: translateY(0); }
     }
 
     /* Fly animation: center on mobile instead of button position */
