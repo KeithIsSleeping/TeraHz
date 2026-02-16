@@ -470,7 +470,8 @@ class SiteContent extends React.Component {
                 </div>
 
                 {/* LEFT PANEL */}
-                <div className="panelLeft" ref={this.seedsRef}>
+                <div className="panelLeft">
+                    <div className="seedsSection" ref={this.seedsRef}>
                     <div className="searchTabs">
                         {['song', 'artist', 'genre'].map(m => (
                             <button
@@ -522,6 +523,7 @@ class SiteContent extends React.Component {
                             </div>
                         </div>
                     )}
+                    </div>{/* end seedsSection */}
 
                     {/* Results */}
                     <div className="resultsArea" ref={this.recsRef}>
