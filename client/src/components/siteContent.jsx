@@ -20,18 +20,20 @@ class SiteContent extends React.Component {
             loadingRecommendations: false,
             recommendationError: '',
             playlistTracks: [],
+            playlistPanelOpen: false,
             playlistName: '',
             playlistDescription: '',
             playlistIsPublic: true,
-            showVibes: false,
-            activeVibes: [],
+            showVibes: true,
             trackLimit: 30,
             popularityRange: [0, 100],
-            decadeFilter: 'any',
+            decadeFilter: [],
             excludeExplicit: false,
             sortBy: 'default',
+            durationFilter: [],
             flyingTrack: null,
             seedsScrolledPast: false,
+            vibesScrolledPast: false,
             recsScrolledPast: false,
             playlistScrolledPast: false,
             playlistInView: false
@@ -50,6 +52,7 @@ class SiteContent extends React.Component {
 
         this.layoutRef = React.createRef();
         this.seedsRef = React.createRef();
+        this.vibesRef = React.createRef();
         this.recsRef = React.createRef();
         this.playlistRef = React.createRef();
     }
@@ -82,26 +85,32 @@ class SiteContent extends React.Component {
         this._rafId = requestAnimationFrame(() => {
             this._rafId = null;
             const vp = window.innerHeight;
-            // Track whether each section has been scrolled past (above the viewport)
+            const headerH = 56; // height of appHeader
+            // Track whether each section's top has scrolled above the header
             let seedsPast = false;
+            let vibesPast = false;
             let recsPast = false;
             let plPast = false;
             let plInView = false;
             if (this.seedsRef.current) {
                 const r = this.seedsRef.current.getBoundingClientRect();
-                seedsPast = r.bottom <= 0;
+                seedsPast = r.top < headerH;
+            }
+            if (this.vibesRef.current) {
+                const r = this.vibesRef.current.getBoundingClientRect();
+                vibesPast = r.top < headerH;
             }
             if (this.recsRef.current) {
                 const r = this.recsRef.current.getBoundingClientRect();
-                recsPast = r.bottom <= 0;
+                recsPast = r.top < headerH;
             }
             if (this.playlistRef.current) {
                 const r = this.playlistRef.current.getBoundingClientRect();
-                plPast = r.bottom <= 0;
+                plPast = r.top < headerH;
                 plInView = r.top < vp && r.bottom > 0;
             }
-            if (seedsPast !== this.state.seedsScrolledPast || recsPast !== this.state.recsScrolledPast || plPast !== this.state.playlistScrolledPast || plInView !== this.state.playlistInView) {
-                this.setState({ seedsScrolledPast: seedsPast, recsScrolledPast: recsPast, playlistScrolledPast: plPast, playlistInView: plInView });
+            if (seedsPast !== this.state.seedsScrolledPast || vibesPast !== this.state.vibesScrolledPast || recsPast !== this.state.recsScrolledPast || plPast !== this.state.playlistScrolledPast || plInView !== this.state.playlistInView) {
+                this.setState({ seedsScrolledPast: seedsPast, vibesScrolledPast: vibesPast, recsScrolledPast: recsPast, playlistScrolledPast: plPast, playlistInView: plInView });
             }
         });
     }
@@ -109,6 +118,13 @@ class SiteContent extends React.Component {
     scrollToSeeds() {
         if (this.seedsRef.current) {
             this.seedsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            this._scheduleScrollRecheck();
+        }
+    }
+
+    scrollToVibes() {
+        if (this.vibesRef.current) {
+            this.vibesRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
             this._scheduleScrollRecheck();
         }
     }
@@ -145,12 +161,12 @@ class SiteContent extends React.Component {
             playlistName: this.state.playlistName,
             playlistDescription: this.state.playlistDescription,
             playlistIsPublic: this.state.playlistIsPublic,
-            activeVibes: this.state.activeVibes,
             trackLimit: this.state.trackLimit,
             popularityRange: this.state.popularityRange,
             decadeFilter: this.state.decadeFilter,
             excludeExplicit: this.state.excludeExplicit,
-            sortBy: this.state.sortBy
+            sortBy: this.state.sortBy,
+            durationFilter: this.state.durationFilter,
         };
         try {
             sessionStorage.setItem('terahz_state', JSON.stringify(toSave));
@@ -169,15 +185,16 @@ class SiteContent extends React.Component {
                     genreSeedList: parsed.genreSeedList || [],
                     recommendedTracks: parsed.recommendedTracks || [],
                     playlistTracks: parsed.playlistTracks || [],
+                    playlistPanelOpen: (parsed.playlistTracks || []).length > 0,
                     playlistName: parsed.playlistName || '',
                     playlistDescription: parsed.playlistDescription || '',
                     playlistIsPublic: parsed.playlistIsPublic !== undefined ? parsed.playlistIsPublic : true,
-                    activeVibes: parsed.activeVibes || [],
                     trackLimit: parsed.trackLimit || 30,
                     popularityRange: parsed.popularityRange || [0, 100],
-                    decadeFilter: parsed.decadeFilter || 'any',
+                    decadeFilter: Array.isArray(parsed.decadeFilter) ? parsed.decadeFilter : [],
                     excludeExplicit: parsed.excludeExplicit || false,
-                    sortBy: parsed.sortBy || 'default'
+                    sortBy: parsed.sortBy || 'default',
+                    durationFilter: Array.isArray(parsed.durationFilter) ? parsed.durationFilter : []
                 });
                 sessionStorage.removeItem('terahz_state');
             }
@@ -222,13 +239,12 @@ class SiteContent extends React.Component {
     }
 
     handleGenerate() {
-        const { songSeedList, artistSeedList, genreSeedList, activeVibes, trackLimit } = this.state;
+        const { songSeedList, artistSeedList, genreSeedList, trackLimit } = this.state;
         const params = { limit: trackLimit };
 
         if (songSeedList.length > 0) params.seed_tracks = songSeedList.map(s => s.id).slice(0, 5).join(',');
         if (artistSeedList.length > 0) params.seed_artists = artistSeedList.map(a => a.id).slice(0, 5).join(',');
         if (genreSeedList.length > 0) params.seed_genres = genreSeedList.map(g => g.id).slice(0, 5).join(',');
-        if (activeVibes.length > 0) params.mood_tags = activeVibes.join(',');
 
         const hasSeeds = songSeedList.length + artistSeedList.length + genreSeedList.length > 0;
         if (!hasSeeds) {
@@ -273,7 +289,8 @@ class SiteContent extends React.Component {
                 setTimeout(() => this.setState({ flyingTrack: null }), 600);
             }
             this.setState(prev => ({
-                playlistTracks: [...prev.playlistTracks, track]
+                playlistTracks: [...prev.playlistTracks, track],
+                playlistPanelOpen: true
             }), () => {
                 // Re-check section visibility so floating nav appears immediately
                 setTimeout(() => { this._rafId = null; this.handleScroll(); }, 50);
@@ -285,7 +302,7 @@ class SiteContent extends React.Component {
         const ids = new Set(this.state.playlistTracks.map(t => t.id));
         const filtered = this.getFilteredTracks();
         const add = filtered.filter(t => !ids.has(t.id));
-        this.setState({ playlistTracks: [...this.state.playlistTracks, ...add] }, () => {
+        this.setState({ playlistTracks: [...this.state.playlistTracks, ...add], playlistPanelOpen: true }, () => {
             this.scrollToPlaylist();
         });
     }
@@ -294,15 +311,33 @@ class SiteContent extends React.Component {
         this.setState({ playlistTracks: this.state.playlistTracks.filter(t => t.id !== trackId) });
     }
 
+    reorderPlaylist = (fromIndex, toIndex) => {
+        this.setState(prev => {
+            const tracks = [...prev.playlistTracks];
+            const [moved] = tracks.splice(fromIndex, 1);
+            tracks.splice(toIndex, 0, moved);
+            return { playlistTracks: tracks };
+        });
+    };
+
     clearPlaylist() {
         this.setState({
             playlistTracks: [],
-            recommendedTracks: [],
             playlistName: '',
-            playlistDescription: '',
-            playlistIsPublic: true
+            playlistDescription: ''
         });
     }
+
+    closePlaylistPanel = () => {
+        this.setState({
+            playlistTracks: [],
+            playlistPanelOpen: false,
+            playlistName: '',
+            playlistDescription: '',
+            playlistIsPublic: true,
+            recommendedTracks: []
+        });
+    };
 
     renderSeedPills() {
         const { songSeedList, artistSeedList, genreSeedList } = this.state;
@@ -353,39 +388,17 @@ class SiteContent extends React.Component {
                         onClick={(e) => this.addTrackToPlaylist(track, e)}
                         disabled={inPlaylist}
                     >
-                        {inPlaylist ? '✓' : '+'}
+                        {inPlaylist ? '✓' : ''}
                     </button>
                 )}
             </div>
         );
     }
 
-    toggleVibe(vibe) {
-        this.setState(prev => {
-            const active = prev.activeVibes.includes(vibe)
-                ? prev.activeVibes.filter(v => v !== vibe)
-                : [...prev.activeVibes, vibe];
-            return { activeVibes: active };
-        });
-    }
-
     renderVibePanel() {
-        const { showVibes, activeVibes, popularityRange, decadeFilter, excludeExplicit, sortBy } = this.state;
-        const VIBES = [
-            { id: 'danceable',  label: 'Danceable',  icon: '💃' },
-            { id: 'energetic',  label: 'Energetic',  icon: '⚡' },
-            { id: 'chill',      label: 'Chill',      icon: '🌊' },
-            { id: 'acoustic',   label: 'Acoustic',   icon: '🎸' },
-            { id: 'upbeat',     label: 'Upbeat',     icon: '☀️' },
-            { id: 'melancholy', label: 'Melancholy', icon: '🌧️' },
-            { id: 'fast',       label: 'Fast BPM',   icon: '🏃' },
-            { id: 'slow',       label: 'Slow BPM',   icon: '🐢' },
-            { id: 'instrumental', label: 'Instrumental', icon: '🎹' },
-            { id: 'vocal',      label: 'Vocal',      icon: '🎤' },
-        ];
+        const { showVibes, popularityRange, decadeFilter, excludeExplicit, sortBy, durationFilter } = this.state;
 
         const DECADES = [
-            { id: 'any',   label: 'Any era' },
             { id: '2020s', label: '2020s' },
             { id: '2010s', label: '2010s' },
             { id: '2000s', label: '2000s' },
@@ -405,6 +418,7 @@ class SiteContent extends React.Component {
 
         const SORT_OPTIONS = [
             { id: 'default',    label: 'Default' },
+            { id: 'random',     label: 'Random' },
             { id: 'pop-high',   label: 'Most Popular' },
             { id: 'pop-low',    label: 'Least Popular' },
             { id: 'newest',     label: 'Newest' },
@@ -412,40 +426,31 @@ class SiteContent extends React.Component {
             { id: 'name',       label: 'A → Z' },
         ];
 
-        const hasFilters = activeVibes.length > 0 || popularityRange[0] !== 0 || popularityRange[1] !== 100 || decadeFilter !== 'any' || excludeExplicit || sortBy !== 'default';
+        const DURATION_OPTIONS = [
+            { id: 'short',  label: 'Short (<3m)' },
+            { id: 'medium', label: 'Medium (3–5m)' },
+            { id: 'long',   label: 'Long (5–8m)' },
+            { id: 'epic',   label: 'Epic (8m+)' },
+        ];
+
+        const hasFilters = popularityRange[0] !== 0 || popularityRange[1] !== 100 || decadeFilter.length > 0 || excludeExplicit || sortBy !== 'default' || durationFilter.length > 0;
 
         return (
-            <div className="vibeSection">
-                <button
-                    className={'vibeToggle' + (showVibes ? ' vibeToggleOpen' : '')}
-                    onClick={() => this.setState(prev => ({ showVibes: !prev.showVibes }))}
-                >
-                    <span className="vibeToggleLabel">
-                        🎛️ Fine-tune vibes
-                        {hasFilters && <span className="vibeCount">✓</span>}
-                    </span>
-                    <span className="vibeChevron">{showVibes ? '▲' : '▼'}</span>
-                </button>
+            <div className="vibeSection" ref={this.vibesRef}>
+                <div className="vibeHeader">
+                    <span className="vibeHeaderLabel">🎛️ Fine-tune</span>
+                    {hasFilters && (
+                        <button className="vibeClear" onClick={() => this.setState({ popularityRange: [0, 100], decadeFilter: [], excludeExplicit: false, sortBy: 'default', durationFilter: [] })}>
+                            Reset
+                        </button>
+                    )}
+                </div>
                 {showVibes && (
                     <div className="vibePanel">
-                        {/* Mood vibes */}
-                        <div className="vibeGrid">
-                            {VIBES.map(v => (
-                                <button
-                                    key={v.id}
-                                    className={'vibeChip' + (activeVibes.includes(v.id) ? ' vibeChipActive' : '')}
-                                    onClick={() => this.toggleVibe(v.id)}
-                                >
-                                    <span className="vibeChipIcon">{v.icon}</span>
-                                    {v.label}
-                                </button>
-                            ))}
-                        </div>
-
-                        {/* Popularity slider */}
+                        {/* Popularity */}
                         <div className="filterGroup">
                             <div className="filterLabel">
-                                <span>📊 Popularity</span>
+                                <span>Popularity</span>
                                 <span className="filterValue">{popLabels(popularityRange[0], popularityRange[1])}</span>
                             </div>
                             <div className="dualSlider">
@@ -478,17 +483,21 @@ class SiteContent extends React.Component {
                             </div>
                         </div>
 
-                        {/* Decade filter */}
+                        {/* Era */}
                         <div className="filterGroup">
                             <div className="filterLabel">
-                                <span>📅 Era</span>
+                                <span>Era</span>
                             </div>
                             <div className="decadeGrid">
                                 {DECADES.map(d => (
                                     <button
                                         key={d.id}
-                                        className={'decadeChip' + (decadeFilter === d.id ? ' decadeChipActive' : '')}
-                                        onClick={() => this.setState({ decadeFilter: d.id })}
+                                        className={'decadeChip' + (decadeFilter.includes(d.id) ? ' decadeChipActive' : '')}
+                                        onClick={() => this.setState(prev => ({
+                                            decadeFilter: prev.decadeFilter.includes(d.id)
+                                                ? prev.decadeFilter.filter(x => x !== d.id)
+                                                : [...prev.decadeFilter, d.id]
+                                        }))}
                                     >
                                         {d.label}
                                     </button>
@@ -496,20 +505,41 @@ class SiteContent extends React.Component {
                             </div>
                         </div>
 
-                        {/* Exclude explicit */}
+                        {/* Explicit */}
                         <div className="filterGroup">
                             <label className="filterToggle" onClick={() => this.setState(prev => ({ excludeExplicit: !prev.excludeExplicit }))}>
                                 <span className="filterToggleTrack">
                                     <span className={'filterToggleThumb' + (excludeExplicit ? ' filterToggleOn' : '')} />
                                 </span>
-                                <span>🚫 Hide explicit tracks</span>
+                                <span>Hide explicit</span>
                             </label>
                         </div>
 
-                        {/* Sort */}
+                        {/* Duration */}
                         <div className="filterGroup">
                             <div className="filterLabel">
-                                <span>↕️ Sort by</span>
+                                <span>Duration</span>
+                            </div>
+                            <div className="decadeGrid">
+                                {DURATION_OPTIONS.map(d => (
+                                    <button
+                                        key={d.id}
+                                        className={'decadeChip' + (durationFilter.includes(d.id) ? ' decadeChipActive' : '')}
+                                        onClick={() => this.setState(prev => ({
+                                            durationFilter: prev.durationFilter.includes(d.id)
+                                                ? prev.durationFilter.filter(x => x !== d.id)
+                                                : [...prev.durationFilter, d.id]
+                                        }))}
+                                    >
+                                        {d.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="filterGroup">
+                            <div className="filterLabel">
+                                <span>Sort by</span>
                             </div>
                             <div className="decadeGrid">
                                 {SORT_OPTIONS.map(s => (
@@ -524,11 +554,6 @@ class SiteContent extends React.Component {
                             </div>
                         </div>
 
-                        {hasFilters && (
-                            <button className="vibeClear" onClick={() => this.setState({ activeVibes: [], popularityRange: [0, 100], decadeFilter: 'any', excludeExplicit: false, sortBy: 'default' })}>
-                                Clear all filters
-                            </button>
-                        )}
                     </div>
                 )}
             </div>
@@ -536,11 +561,12 @@ class SiteContent extends React.Component {
     }
 
     getFilteredTracks() {
-        const { recommendedTracks, popularityRange, decadeFilter, excludeExplicit, sortBy } = this.state;
+        const { recommendedTracks, popularityRange, decadeFilter, excludeExplicit, sortBy, durationFilter } = this.state;
         const [minPop, maxPop] = popularityRange;
         const hasPopFilter = minPop !== 0 || maxPop !== 100;
-        const hasDecadeFilter = decadeFilter !== 'any';
-        const hasAnyFilter = hasPopFilter || hasDecadeFilter || excludeExplicit;
+        const hasDecadeFilter = decadeFilter.length > 0;
+        const hasDurationFilter = durationFilter.length > 0;
+        const hasAnyFilter = hasPopFilter || hasDecadeFilter || excludeExplicit || hasDurationFilter;
 
         let tracks = hasAnyFilter ? recommendedTracks.filter(track => {
             // Explicit filter
@@ -550,29 +576,53 @@ class SiteContent extends React.Component {
                 const pop = track.popularity || 0;
                 if (pop < minPop || pop > maxPop) return false;
             }
-            // Decade filter
+            // Decade filter (multi-select — track matches if it falls in ANY selected era)
             if (hasDecadeFilter) {
                 const releaseDate = track.album && track.album.release_date;
                 if (!releaseDate) return false;
                 const year = parseInt(releaseDate.substring(0, 4));
                 if (isNaN(year)) return false;
-                switch (decadeFilter) {
-                    case '2020s': if (year < 2020) return false; break;
-                    case '2010s': if (year < 2010 || year >= 2020) return false; break;
-                    case '2000s': if (year < 2000 || year >= 2010) return false; break;
-                    case '1990s': if (year < 1990 || year >= 2000) return false; break;
-                    case '1980s': if (year < 1980 || year >= 1990) return false; break;
-                    case '1970s': if (year < 1970 || year >= 1980) return false; break;
-                    case 'pre70':  if (year >= 1970) return false; break;
-                    default: break;
-                }
+                const matchesEra = decadeFilter.some(era => {
+                    switch (era) {
+                        case '2020s': return year >= 2020;
+                        case '2010s': return year >= 2010 && year < 2020;
+                        case '2000s': return year >= 2000 && year < 2010;
+                        case '1990s': return year >= 1990 && year < 2000;
+                        case '1980s': return year >= 1980 && year < 1990;
+                        case '1970s': return year >= 1970 && year < 1980;
+                        case 'pre70':  return year < 1970;
+                        default: return false;
+                    }
+                });
+                if (!matchesEra) return false;
+            }
+            // Duration filter (multi-select — track matches if it falls in ANY selected range)
+            if (hasDurationFilter) {
+                const ms = track.duration_ms || 0;
+                const matchesDur = durationFilter.some(dur => {
+                    switch (dur) {
+                        case 'short':  return ms < 180000;
+                        case 'medium': return ms >= 180000 && ms < 300000;
+                        case 'long':   return ms >= 300000 && ms < 480000;
+                        case 'epic':   return ms >= 480000;
+                        default: return false;
+                    }
+                });
+                if (!matchesDur) return false;
             }
             return true;
         }) : [...recommendedTracks];
 
         // Sort
         if (sortBy !== 'default') {
-            tracks = [...tracks].sort((a, b) => {
+            if (sortBy === 'random') {
+                tracks = [...tracks];
+                for (let i = tracks.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [tracks[i], tracks[j]] = [tracks[j], tracks[i]];
+                }
+            } else {
+                tracks = [...tracks].sort((a, b) => {
                 switch (sortBy) {
                     case 'pop-high': return (b.popularity || 0) - (a.popularity || 0);
                     case 'pop-low':  return (a.popularity || 0) - (b.popularity || 0);
@@ -590,6 +640,7 @@ class SiteContent extends React.Component {
                     default: return 0;
                 }
             });
+            }
         }
 
         return tracks;
@@ -633,11 +684,11 @@ class SiteContent extends React.Component {
             genreSeedList,
             recommendedTracks, loadingRecommendations, recommendationError,
             playlistTracks, songSeedList, artistSeedList,
-            flyingTrack, seedsScrolledPast, recsScrolledPast, playlistScrolledPast, playlistInView
+            flyingTrack, seedsScrolledPast, vibesScrolledPast, recsScrolledPast, playlistScrolledPast, playlistInView
         } = this.state;
         const { authenticated, onLogin } = this.props;
         const totalSeeds = songSeedList.length + artistSeedList.length + genreSeedList.length;
-        const showPlaylist = playlistTracks.length > 0;
+        const showPlaylist = this.state.playlistPanelOpen;
         const isBlank = totalSeeds === 0 && recommendedTracks.length === 0 && playlistTracks.length === 0;
         const hasRecs = recommendedTracks.length > 0;
 
@@ -650,21 +701,31 @@ class SiteContent extends React.Component {
                     </div>
                 )}
 
-                {/* COLLAPSED SECTION HEADERS (mobile) */}
-                <div className="stickyHeaders">
-                    {seedsScrolledPast && (
-                        <button className="stickyHeader stickySeeds" onClick={() => this.scrollToSeeds()}>
-                            <span className="stickyIcon">🎵</span> Seeds
-                            <span className="stickyBadge">{totalSeeds}</span>
-                        </button>
-                    )}
-                    {hasRecs && recsScrolledPast && (
-                        <button className="stickyHeader stickyRecs" onClick={() => this.scrollToRecs()}>
-                            <span className="stickyIcon">♪</span> Recommendations
-                            <span className="stickyBadge">{recommendedTracks.length}</span>
-                        </button>
-                    )}
-                </div>
+                {/* CHEVRON BREADCRUMB NAV (mobile) */}
+                {(seedsScrolledPast || (totalSeeds > 0 && vibesScrolledPast) || (hasRecs && recsScrolledPast) || (showPlaylist && playlistScrolledPast)) && (
+                    <nav className="breadcrumbBar">
+                        {seedsScrolledPast && (
+                            <button className="bcItem bcSeeds" onClick={() => this.scrollToSeeds()}>
+                                Seeds
+                            </button>
+                        )}
+                        {totalSeeds > 0 && vibesScrolledPast && (
+                            <button className="bcItem bcVibes" onClick={() => this.scrollToVibes()}>
+                                Tune
+                            </button>
+                        )}
+                        {hasRecs && recsScrolledPast && (
+                            <button className="bcItem bcRecs" onClick={() => this.scrollToRecs()}>
+                                Recs
+                            </button>
+                        )}
+                        {showPlaylist && playlistScrolledPast && (
+                            <button className="bcItem bcPlaylist" onClick={() => this.scrollToPlaylist()}>
+                                Playlist
+                            </button>
+                        )}
+                    </nav>
+                )}
 
                 {/* LEFT PANEL */}
                 <div className="panelLeft">
@@ -693,7 +754,9 @@ class SiteContent extends React.Component {
                     {/* Vibe tuning — only when seeds exist */}
                     {totalSeeds > 0 && this.renderVibePanel()}
 
-                    {/* Generate Button — only when seeds exist */}
+                    </div>{/* end seedsSection */}
+
+                    {/* Generate Button — sticky footer, only when seeds exist */}
                     {totalSeeds > 0 && (
                         <div className="tuneBar">
                             <div className="genRow">
@@ -721,7 +784,6 @@ class SiteContent extends React.Component {
                             </div>
                         </div>
                     )}
-                    </div>{/* end seedsSection */}
 
                     {/* Results */}
                     <div className="resultsArea" ref={this.recsRef}>
@@ -769,7 +831,9 @@ class SiteContent extends React.Component {
                             playlistTracks={playlistTracks}
                             authenticated={authenticated}
                             onRemoveTrack={this.removeTrackFromPlaylist}
+                            onReorder={this.reorderPlaylist}
                             onClear={this.clearPlaylist}
+                            onClose={this.closePlaylistPanel}
                             onLogin={onLogin}
                             playlistName={this.state.playlistName}
                             playlistDescription={this.state.playlistDescription}

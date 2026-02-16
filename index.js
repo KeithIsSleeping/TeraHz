@@ -325,33 +325,13 @@ app.get('/getAudioFeatures', (req, res) => {
 
 // Get recommendations based on seeds — uses Last.fm similar tracks/artists + Spotify cross-match
 app.get('/getRecommendations', async (req, res) => {
-    const { seed_tracks, seed_artists, seed_genres, limit, mood_tags } = req.query;
+    const { seed_tracks, seed_artists, seed_genres, limit } = req.query;
     const trackLimit = Math.min(parseInt(limit) || 30, 100);
-    console.log('Recommendation request:', { seed_tracks, seed_artists, seed_genres, mood_tags, limit: trackLimit });
+    console.log('Recommendation request:', { seed_tracks, seed_artists, seed_genres, limit: trackLimit });
 
     const seedTrackIds = seed_tracks ? seed_tracks.split(',').filter(Boolean) : [];
     const seedArtistIds = seed_artists ? seed_artists.split(',').filter(Boolean) : [];
     const seedGenres = seed_genres ? seed_genres.split(',').filter(Boolean) : [];
-    const moodTags = mood_tags ? mood_tags.split(',').filter(Boolean) : [];
-
-    // Map UI vibe IDs to Last.fm tag names
-    const VIBE_TAG_MAP = {
-        'danceable':    ['dance', 'danceable'],
-        'energetic':    ['energetic', 'energy', 'uplifting'],
-        'chill':        ['chill', 'chillout', 'relaxing'],
-        'acoustic':     ['acoustic', 'unplugged'],
-        'upbeat':       ['happy', 'upbeat', 'feel good'],
-        'melancholy':   ['melancholy', 'sad', 'melancholic'],
-        'fast':         ['fast', 'uptempo'],
-        'slow':         ['slow', 'downtempo', 'ballad'],
-        'instrumental': ['instrumental'],
-        'vocal':        ['vocal', 'singer-songwriter']
-    };
-    const resolvedMoodTags = [];
-    for (const m of moodTags) {
-        const tags = VIBE_TAG_MAP[m];
-        if (tags) resolvedMoodTags.push(...tags);
-    }
 
     if (seedTrackIds.length + seedArtistIds.length + seedGenres.length === 0) {
         return res.json({ error: { message: 'At least one seed is required.' } });
@@ -475,30 +455,6 @@ app.get('/getRecommendations', async (req, res) => {
                 }
             }
 
-            // For mood/vibe tags: Last.fm tag.getTopTracks for each resolved tag
-            if (resolvedMoodTags.length > 0) {
-                const tagsToSearch = resolvedMoodTags.slice(0, 4);
-                for (const tag of tagsToSearch) {
-                    const randomPage = Math.floor(Math.random() * 5) + 1;
-                    console.log('Last.fm: getting mood tracks for tag', tag, 'page', randomPage);
-                    try {
-                        const tagTracks = await lastfmClient.getTopTracksByTag(tag, 30, randomPage);
-                        console.log('Last.fm: found', tagTracks.length, 'mood tag tracks');
-                        const batch = tagTracks.slice(0, 10);
-                        const spotifyMatches = await Promise.all(
-                            batch.map(t => searchSpotifyTrack(t.name, t.artist))
-                        );
-                        for (const match of spotifyMatches) {
-                            if (match && !seenIds.has(match.id)) {
-                                seenIds.add(match.id);
-                                candidateTracks.push(match);
-                            }
-                        }
-                    } catch (e) {
-                        console.log('Mood tag search failed for', tag, e.message);
-                    }
-                }
-            }
         }
 
         // ================== SPOTIFY SEARCH ENGINE (always runs) ==================

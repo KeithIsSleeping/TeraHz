@@ -10,11 +10,43 @@ class PlaylistBuilder extends React.Component {
             saving: false,
             saved: false,
             savedPlaylistUrl: '',
-            error: ''
+            error: '',
+            dragIndex: null,
+            dragOverIndex: null
         };
         this.handleSave = this.handleSave.bind(this);
         this.removeTrack = this.removeTrack.bind(this);
     }
+
+    handleDragStart = (e, index) => {
+        this.setState({ dragIndex: index });
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', index);
+        // make the dragged row semi-transparent after a tick
+        setTimeout(() => { if (e.target) e.target.style.opacity = '0.4'; }, 0);
+    };
+
+    handleDragEnd = (e) => {
+        e.target.style.opacity = '1';
+        this.setState({ dragIndex: null, dragOverIndex: null });
+    };
+
+    handleDragOver = (e, index) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        if (this.state.dragOverIndex !== index) {
+            this.setState({ dragOverIndex: index });
+        }
+    };
+
+    handleDrop = (e, toIndex) => {
+        e.preventDefault();
+        const fromIndex = this.state.dragIndex;
+        if (fromIndex !== null && fromIndex !== toIndex) {
+            this.props.onReorder(fromIndex, toIndex);
+        }
+        this.setState({ dragIndex: null, dragOverIndex: null });
+    };
 
     handleSave() {
         const { playlistTracks, playlistName, playlistDescription, playlistIsPublic } = this.props;
@@ -63,7 +95,7 @@ class PlaylistBuilder extends React.Component {
     }
 
     render() {
-        const { playlistTracks, authenticated, playlistName, playlistDescription, playlistIsPublic, onNameChange, onDescChange, onPublicChange, onClear } = this.props;
+        const { playlistTracks, authenticated, playlistName, playlistDescription, playlistIsPublic, onNameChange, onDescChange, onPublicChange, onClear, onClose } = this.props;
         const { saving, saved, savedPlaylistUrl, error } = this.state;
 
         const totalDuration = playlistTracks.reduce((sum, t) => sum + (t.duration_ms || 0), 0);
@@ -119,6 +151,12 @@ class PlaylistBuilder extends React.Component {
 
                         {error && <div className="playlistError">{error}</div>}
 
+                        {playlistTracks.length > 0 && (
+                            <div className="playlistListHeader">
+                                <button className="clearAllBtn" onClick={onClear}>Clear All</button>
+                            </div>
+                        )}
+
                         <div className="playlistTrackList">
                             {playlistTracks.length === 0 && (
                                 <div className="playlistEmpty">
@@ -129,8 +167,18 @@ class PlaylistBuilder extends React.Component {
                                 const artists = track.artists ? track.artists.map(a => a.name).join(', ') : '';
                                 const image = track.album && track.album.images && track.album.images.length > 2
                                     ? track.album.images[2].url : '';
+                                const isDragOver = this.state.dragOverIndex === index && this.state.dragIndex !== index;
                                 return (
-                                    <div key={track.id} className="playlistTrackRow">
+                                    <div
+                                        key={track.id}
+                                        className={'playlistTrackRow' + (isDragOver ? ' plDragOver' : '')}
+                                        draggable
+                                        onDragStart={(e) => this.handleDragStart(e, index)}
+                                        onDragEnd={this.handleDragEnd}
+                                        onDragOver={(e) => this.handleDragOver(e, index)}
+                                        onDrop={(e) => this.handleDrop(e, index)}
+                                    >
+                                        <span className="playlistDragHandle" title="Drag to reorder">⠿</span>
                                         <span className="playlistTrackNum">{index + 1}</span>
                                         {image && <img src={image} alt="" className="playlistTrackThumb" />}
                                         <div className="playlistTrackInfo">
@@ -169,7 +217,7 @@ class PlaylistBuilder extends React.Component {
                                         </button>
                                     </div>
                                 )}
-                                <button className="clearPlaylistBtn" onClick={onClear}>
+                                <button className="clearPlaylistBtn" onClick={onClose}>
                                     Clear &amp; Start Fresh
                                 </button>
                             </div>
@@ -185,7 +233,9 @@ PlaylistBuilder.propTypes = {
     playlistTracks: PropTypes.array.isRequired,
     authenticated: PropTypes.bool.isRequired,
     onRemoveTrack: PropTypes.func.isRequired,
+    onReorder: PropTypes.func.isRequired,
     onClear: PropTypes.func.isRequired,
+    onClose: PropTypes.func.isRequired,
     playlistName: PropTypes.string.isRequired,
     playlistDescription: PropTypes.string.isRequired,
     playlistIsPublic: PropTypes.bool.isRequired,
