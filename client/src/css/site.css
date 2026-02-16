@@ -1897,4 +1897,16 @@ button { cursor: pointer; }
         height: 18px;
         font-size: 10px;
     }
+
+    /* Fly animation: center on mobile instead of button position */
+    .flyTrack {
+        left: 50% !important;
+        animation: flyDownMobile .55s cubic-bezier(.23, 1, .32, 1) forwards;
+    }
+
+    @keyframes flyDownMobile {
+        0%   { opacity: 1;  transform: translateX(-50%) scale(1) translateY(0); }
+        60%  { opacity: .8; transform: translateX(-50%) scale(.7) translateY(60px); }
+        100% { opacity: 0;  transform: translateX(-50%) scale(.4) translateY(120px); }
+    }
 }

@@ -235,7 +235,10 @@ class SiteContent extends React.Component {
             }
             this.setState(prev => ({
                 playlistTracks: [...prev.playlistTracks, track]
-            }));
+            }), () => {
+                // Re-check section visibility so floating nav appears immediately
+                setTimeout(() => { this._rafId = null; this.handleScroll(); }, 50);
+            });
         }
     }
 
