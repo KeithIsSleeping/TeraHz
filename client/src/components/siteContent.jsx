@@ -26,6 +26,8 @@ class SiteContent extends React.Component {
             showVibes: false,
             activeVibes: [],
             trackLimit: 30,
+            popularityRange: [0, 100],
+            decadeFilter: 'any',
             flyingTrack: null,
             seedsScrolledPast: false,
             recsScrolledPast: false,
@@ -142,7 +144,9 @@ class SiteContent extends React.Component {
             playlistDescription: this.state.playlistDescription,
             playlistIsPublic: this.state.playlistIsPublic,
             activeVibes: this.state.activeVibes,
-            trackLimit: this.state.trackLimit
+            trackLimit: this.state.trackLimit,
+            popularityRange: this.state.popularityRange,
+            decadeFilter: this.state.decadeFilter
         };
         try {
             sessionStorage.setItem('terahz_state', JSON.stringify(toSave));
@@ -165,7 +169,9 @@ class SiteContent extends React.Component {
                     playlistDescription: parsed.playlistDescription || '',
                     playlistIsPublic: parsed.playlistIsPublic !== undefined ? parsed.playlistIsPublic : true,
                     activeVibes: parsed.activeVibes || [],
-                    trackLimit: parsed.trackLimit || 30
+                    trackLimit: parsed.trackLimit || 30,
+                    popularityRange: parsed.popularityRange || [0, 100],
+                    decadeFilter: parsed.decadeFilter || 'any'
                 });
                 sessionStorage.removeItem('terahz_state');
             }
@@ -271,7 +277,8 @@ class SiteContent extends React.Component {
 
     addAllToPlaylist() {
         const ids = new Set(this.state.playlistTracks.map(t => t.id));
-        const add = this.state.recommendedTracks.filter(t => !ids.has(t.id));
+        const filtered = this.getFilteredTracks();
+        const add = filtered.filter(t => !ids.has(t.id));
         this.setState({ playlistTracks: [...this.state.playlistTracks, ...add] }, () => {
             this.scrollToPlaylist();
         });
@@ -357,7 +364,7 @@ class SiteContent extends React.Component {
     }
 
     renderVibePanel() {
-        const { showVibes, activeVibes } = this.state;
+        const { showVibes, activeVibes, popularityRange, decadeFilter } = this.state;
         const VIBES = [
             { id: 'danceable',  label: 'Danceable',  icon: '💃' },
             { id: 'energetic',  label: 'Energetic',  icon: '⚡' },
@@ -371,6 +378,27 @@ class SiteContent extends React.Component {
             { id: 'vocal',      label: 'Vocal',      icon: '🎤' },
         ];
 
+        const DECADES = [
+            { id: 'any',   label: 'Any era' },
+            { id: '2020s', label: '2020s' },
+            { id: '2010s', label: '2010s' },
+            { id: '2000s', label: '2000s' },
+            { id: '1990s', label: '90s' },
+            { id: '1980s', label: '80s' },
+            { id: '1970s', label: '70s' },
+            { id: 'pre70', label: 'Pre-70s' },
+        ];
+
+        const popLabels = (min, max) => {
+            if (min === 0 && max === 100) return 'Any';
+            if (min >= 70) return 'Mainstream';
+            if (max <= 30) return 'Underground';
+            if (max <= 60) return 'Indie';
+            return min + '–' + max;
+        };
+
+        const hasFilters = activeVibes.length > 0 || popularityRange[0] !== 0 || popularityRange[1] !== 100 || decadeFilter !== 'any';
+
         return (
             <div className="vibeSection">
                 <button
@@ -379,31 +407,124 @@ class SiteContent extends React.Component {
                 >
                     <span className="vibeToggleLabel">
                         🎛️ Fine-tune vibes
-                        {activeVibes.length > 0 && <span className="vibeCount">{activeVibes.length}</span>}
+                        {hasFilters && <span className="vibeCount">✓</span>}
                     </span>
                     <span className="vibeChevron">{showVibes ? '▲' : '▼'}</span>
                 </button>
                 {showVibes && (
-                    <div className="vibeGrid">
-                        {VIBES.map(v => (
-                            <button
-                                key={v.id}
-                                className={'vibeChip' + (activeVibes.includes(v.id) ? ' vibeChipActive' : '')}
-                                onClick={() => this.toggleVibe(v.id)}
-                            >
-                                <span className="vibeChipIcon">{v.icon}</span>
-                                {v.label}
-                            </button>
-                        ))}
-                        {activeVibes.length > 0 && (
-                            <button className="vibeClear" onClick={() => this.setState({ activeVibes: [] })}>
-                                Clear all
+                    <div className="vibePanel">
+                        {/* Mood vibes */}
+                        <div className="vibeGrid">
+                            {VIBES.map(v => (
+                                <button
+                                    key={v.id}
+                                    className={'vibeChip' + (activeVibes.includes(v.id) ? ' vibeChipActive' : '')}
+                                    onClick={() => this.toggleVibe(v.id)}
+                                >
+                                    <span className="vibeChipIcon">{v.icon}</span>
+                                    {v.label}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Popularity slider */}
+                        <div className="filterGroup">
+                            <div className="filterLabel">
+                                <span>📊 Popularity</span>
+                                <span className="filterValue">{popLabels(popularityRange[0], popularityRange[1])}</span>
+                            </div>
+                            <div className="dualSlider">
+                                <input
+                                    type="range" min="0" max="100" step="5"
+                                    value={popularityRange[0]}
+                                    className="rangeInput rangeMin"
+                                    onChange={(e) => {
+                                        const v = parseInt(e.target.value);
+                                        this.setState(prev => ({
+                                            popularityRange: [Math.min(v, prev.popularityRange[1] - 5), prev.popularityRange[1]]
+                                        }));
+                                    }}
+                                />
+                                <input
+                                    type="range" min="0" max="100" step="5"
+                                    value={popularityRange[1]}
+                                    className="rangeInput rangeMax"
+                                    onChange={(e) => {
+                                        const v = parseInt(e.target.value);
+                                        this.setState(prev => ({
+                                            popularityRange: [prev.popularityRange[0], Math.max(v, prev.popularityRange[0] + 5)]
+                                        }));
+                                    }}
+                                />
+                            </div>
+                            <div className="sliderLabels">
+                                <span>Underground</span>
+                                <span>Mainstream</span>
+                            </div>
+                        </div>
+
+                        {/* Decade filter */}
+                        <div className="filterGroup">
+                            <div className="filterLabel">
+                                <span>📅 Era</span>
+                            </div>
+                            <div className="decadeGrid">
+                                {DECADES.map(d => (
+                                    <button
+                                        key={d.id}
+                                        className={'decadeChip' + (decadeFilter === d.id ? ' decadeChipActive' : '')}
+                                        onClick={() => this.setState({ decadeFilter: d.id })}
+                                    >
+                                        {d.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {hasFilters && (
+                            <button className="vibeClear" onClick={() => this.setState({ activeVibes: [], popularityRange: [0, 100], decadeFilter: 'any' })}>
+                                Clear all filters
                             </button>
                         )}
                     </div>
                 )}
             </div>
         );
+    }
+
+    getFilteredTracks() {
+        const { recommendedTracks, popularityRange, decadeFilter } = this.state;
+        const [minPop, maxPop] = popularityRange;
+        const hasPopFilter = minPop !== 0 || maxPop !== 100;
+        const hasDecadeFilter = decadeFilter !== 'any';
+
+        if (!hasPopFilter && !hasDecadeFilter) return recommendedTracks;
+
+        return recommendedTracks.filter(track => {
+            // Popularity filter
+            if (hasPopFilter) {
+                const pop = track.popularity || 0;
+                if (pop < minPop || pop > maxPop) return false;
+            }
+            // Decade filter
+            if (hasDecadeFilter) {
+                const releaseDate = track.album && track.album.release_date;
+                if (!releaseDate) return false;
+                const year = parseInt(releaseDate.substring(0, 4));
+                if (isNaN(year)) return false;
+                switch (decadeFilter) {
+                    case '2020s': if (year < 2020) return false; break;
+                    case '2010s': if (year < 2010 || year >= 2020) return false; break;
+                    case '2000s': if (year < 2000 || year >= 2010) return false; break;
+                    case '1990s': if (year < 1990 || year >= 2000) return false; break;
+                    case '1980s': if (year < 1980 || year >= 1990) return false; break;
+                    case '1970s': if (year < 1970 || year >= 1980) return false; break;
+                    case 'pre70':  if (year >= 1970) return false; break;
+                    default: break;
+                }
+            }
+            return true;
+        });
     }
 
     renderWelcomeHero() {
@@ -538,20 +659,29 @@ class SiteContent extends React.Component {
                     <div className="resultsArea" ref={this.recsRef}>
                         {loadingRecommendations && <div className="rMsg"><span className="spin"></span> Finding tracks...</div>}
                         {recommendationError && <div className="rMsg rErr">{recommendationError}</div>}
-                        {!loadingRecommendations && !recommendationError && recommendedTracks.length > 0 && (
+                        {!loadingRecommendations && !recommendationError && recommendedTracks.length > 0 && (() => {
+                            const filtered = this.getFilteredTracks();
+                            const isFiltered = filtered.length !== recommendedTracks.length;
+                            return (
                             <React.Fragment>
                                 <div className="rBar">
-                                    <span>{recommendedTracks.length} recommendations</span>
+                                    <span>{filtered.length} recommendation{filtered.length !== 1 ? 's' : ''}
+                                        {isFiltered && <span className="rFilterNote"> (filtered from {recommendedTracks.length})</span>}
+                                    </span>
                                     <button className="rAddAll" onClick={this.addAllToPlaylist}>+ Add All</button>
                                 </div>
-                                {playlistTracks.length === 0 && (
+                                {filtered.length === 0 && (
+                                    <div className="rMsg rMuted">No tracks match your filters. Try adjusting popularity or era.</div>
+                                )}
+                                {filtered.length > 0 && playlistTracks.length === 0 && (
                                     <div className="rHint">Tap <strong>+</strong> to add tracks to your playlist, or <strong>+ Add All</strong> to grab them all.</div>
                                 )}
                                 <div className="trkList">
-                                    {recommendedTracks.map(t => this.renderTrackRow(t, true))}
+                                    {filtered.map(t => this.renderTrackRow(t, true))}
                                 </div>
                             </React.Fragment>
-                        )}
+                            );
+                        })()}
                         {!loadingRecommendations && !recommendationError && recommendedTracks.length === 0 && (
                             isBlank ? this.renderWelcomeHero() : (
                                 <div className="rMsg rMuted stepHint">
