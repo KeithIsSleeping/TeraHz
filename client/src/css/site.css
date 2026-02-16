@@ -1677,4 +1677,51 @@ button { cursor: pointer; }
         max-height: 260px;
         overflow-y: auto;
     }
+
+    /* Recommendation bar: ensure Add All stays visible */
+    .rBar {
+        flex-wrap: wrap;
+        gap: 6px;
+        padding: 8px 12px;
+        position: relative;       /* don't sticky on mobile — it can overlap */
+    }
+
+    /* Track rows: tighter padding, hide duration to save space */
+    .trkRow {
+        padding: 6px 10px;
+        gap: 8px;
+    }
+
+    .trkDur {
+        display: none;
+    }
+
+    .trkImg {
+        width: 36px;
+        height: 36px;
+    }
+
+    .trkName {
+        font-size: 12px;
+    }
+
+    .trkArtist {
+        font-size: 10px;
+    }
+
+    .trkAdd {
+        width: 26px;
+        height: 26px;
+        font-size: 14px;
+    }
+
+    /* Generate row: stack vertically if needed */
+    .genRow {
+        flex-wrap: wrap;
+    }
+
+    .genBtnFull {
+        font-size: 13px;
+        padding: 10px 16px;
+    }
 }
