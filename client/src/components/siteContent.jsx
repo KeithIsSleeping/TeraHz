@@ -27,9 +27,9 @@ class SiteContent extends React.Component {
             activeVibes: [],
             trackLimit: 30,
             flyingTrack: null,
-            seedsVisible: true,
-            recsVisible: true,
-            playlistVisible: true
+            seedsScrolledPast: false,
+            recsScrolledPast: false,
+            playlistScrolledPast: false
         };
 
         this.seedSongSelected = this.seedSongSelected.bind(this);
@@ -76,24 +76,24 @@ class SiteContent extends React.Component {
         if (this._rafId) return;
         this._rafId = requestAnimationFrame(() => {
             this._rafId = null;
-            const vp = window.innerHeight;
-            let seedsVis = true;
-            let recsVis = true;
-            let plVis = true;
+            // Track whether each section has been scrolled past (above the viewport)
+            let seedsPast = false;
+            let recsPast = false;
+            let plPast = false;
             if (this.seedsRef.current) {
                 const r = this.seedsRef.current.getBoundingClientRect();
-                seedsVis = r.top < vp && r.bottom > 0;
+                seedsPast = r.bottom <= 0;
             }
             if (this.recsRef.current) {
                 const r = this.recsRef.current.getBoundingClientRect();
-                recsVis = r.top < vp && r.bottom > 0;
+                recsPast = r.bottom <= 0;
             }
             if (this.playlistRef.current) {
                 const r = this.playlistRef.current.getBoundingClientRect();
-                plVis = r.top < vp && r.bottom > 0;
+                plPast = r.bottom <= 0;
             }
-            if (seedsVis !== this.state.seedsVisible || recsVis !== this.state.recsVisible || plVis !== this.state.playlistVisible) {
-                this.setState({ seedsVisible: seedsVis, recsVisible: recsVis, playlistVisible: plVis });
+            if (seedsPast !== this.state.seedsScrolledPast || recsPast !== this.state.recsScrolledPast || plPast !== this.state.playlistScrolledPast) {
+                this.setState({ seedsScrolledPast: seedsPast, recsScrolledPast: recsPast, playlistScrolledPast: plPast });
             }
         });
     }
@@ -430,7 +430,7 @@ class SiteContent extends React.Component {
             genreSeedList,
             recommendedTracks, loadingRecommendations, recommendationError,
             playlistTracks, songSeedList, artistSeedList,
-            flyingTrack, seedsVisible, recsVisible, playlistVisible
+            flyingTrack, seedsScrolledPast, recsScrolledPast, playlistScrolledPast
         } = this.state;
         const { authenticated, onLogin } = this.props;
         const totalSeeds = songSeedList.length + artistSeedList.length + genreSeedList.length;
@@ -449,19 +449,19 @@ class SiteContent extends React.Component {
 
                 {/* COLLAPSED SECTION HEADERS (mobile) */}
                 <div className="stickyHeaders">
-                    {!seedsVisible && (
+                    {seedsScrolledPast && (
                         <button className="stickyHeader stickySeeds" onClick={() => this.scrollToSeeds()}>
                             <span className="stickyIcon">🎵</span> Seeds
                             <span className="stickyBadge">{totalSeeds}</span>
                         </button>
                     )}
-                    {hasRecs && !recsVisible && (
+                    {hasRecs && recsScrolledPast && (
                         <button className="stickyHeader stickyRecs" onClick={() => this.scrollToRecs()}>
                             <span className="stickyIcon">♪</span> Recommendations
                             <span className="stickyBadge">{recommendedTracks.length}</span>
                         </button>
                     )}
-                    {showPlaylist && !playlistVisible && (
+                    {showPlaylist && playlistScrolledPast && (
                         <button className="stickyHeader stickyPlaylist" onClick={() => this.scrollToPlaylist()}>
                             <span className="stickyIcon">▶</span> Playlist
                             <span className="stickyBadge">{playlistTracks.length}</span>
