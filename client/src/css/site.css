@@ -1,0 +1,1643 @@
+/* ============================================================
+   TERAHZ — DARK MODERN THEME
+   ============================================================ */
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+    --bg:        #121212;
+    --bg1:       #181818;
+    --bg2:       #232323;
+    --bg3:       #2a2a2a;
+    --border:    #333;
+    --txt:       #e0e0e0;
+    --txt2:      #a0a0a0;
+    --txt3:      #666;
+    --green:     #1DB954;
+    --greenHov:  #1ed760;
+    --greenDim:  rgba(29,185,84,.12);
+    --red:       #e74c3c;
+    --song:      #1DB954;
+    --artist:    #e88a1a;
+    --genre:     #8b5cf6;
+    --radius:    8px;
+    --radiusLg:  12px;
+    --shadow:    0 2px 12px rgba(0,0,0,.4);
+}
+
+body {
+    font-family: 'Inter', 'Segoe UI', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--txt);
+    -webkit-font-smoothing: antialiased;
+}
+
+input, textarea, button, select { font-family: inherit; }
+button { cursor: pointer; }
+
+/* ============================================================
+   APP SHELL
+   ============================================================ */
+
+.appShell {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+
+.appHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+    padding: 0 24px;
+    background: var(--bg1);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    z-index: 20;
+}
+
+.appLogo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.logoWave {
+    flex-shrink: 0;
+}
+
+.logoText {
+    font-size: 20px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -.5px;
+}
+
+.headerAuth {
+    display: flex;
+    align-items: center;
+}
+
+.headerUser {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.headerAvatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--green);
+}
+
+.headerUserName {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--txt);
+}
+
+.headerBtn {
+    font-size: 13px;
+    font-weight: 600;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 20px;
+    transition: all .2s;
+}
+
+.headerLogin {
+    background: var(--green);
+    color: #fff;
+}
+
+.headerLogin:hover {
+    background: var(--greenHov);
+    transform: scale(1.03);
+}
+
+.headerLoginSubtle {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--txt2);
+    display: inline-flex;
+    align-items: center;
+}
+
+.headerLoginSubtle:hover {
+    border-color: var(--green);
+    color: var(--green);
+}
+
+.headerLoginSubtle svg {
+    opacity: .7;
+    transition: opacity .2s;
+}
+
+.headerLoginSubtle:hover svg {
+    opacity: 1;
+    color: #1DB954;
+}
+
+.headerLogout {
+    background: var(--bg3);
+    color: var(--txt2);
+    margin-left: 6px;
+}
+
+.headerLogout:hover {
+    background: #3a3a3a;
+    color: #fff;
+}
+
+/* ============================================================
+   MAIN LAYOUT — TWO-PANEL
+   ============================================================ */
+
+.mainLayout {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+.panelLeft {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    border-right: 1px solid var(--border);
+    overflow: hidden;
+}
+
+.panelRight {
+    width: 360px;
+    flex-shrink: 0;
+    overflow-y: auto;
+    background: var(--bg1);
+}
+
+/* ============================================================
+   SEARCH TABS
+   ============================================================ */
+
+.searchTabs {
+    display: flex;
+    gap: 4px;
+    padding: 12px 16px 0;
+    flex-shrink: 0;
+}
+
+.sTab {
+    flex: 1;
+    padding: 10px 0;
+    font-size: 13px;
+    font-weight: 600;
+    border: none;
+    border-radius: var(--radius) var(--radius) 0 0;
+    background: var(--bg2);
+    color: var(--txt2);
+    transition: all .2s;
+}
+
+.sTab:hover {
+    background: var(--bg3);
+    color: var(--txt);
+}
+
+.sTabOn {
+    background: var(--bg1);
+    color: var(--green);
+    box-shadow: inset 0 3px 0 var(--green);
+}
+
+/* ============================================================
+   SEARCH AREA (contains song/artist/genre content)
+   ============================================================ */
+
+.searchArea {
+    flex-shrink: 0;
+    max-height: 320px;
+    overflow-y: auto;
+    background: var(--bg1);
+    border-bottom: 1px solid var(--border);
+}
+
+.searchBoxContainer {
+    padding: 14px 16px;
+}
+
+.searchBox {
+    width: 100%;
+    height: 42px;
+    font-size: 14px;
+    background: var(--bg3);
+    border: 2px solid transparent;
+    border-radius: var(--radius);
+    padding: 0 16px;
+    color: var(--txt);
+    outline: none;
+    transition: border-color .2s;
+}
+
+.searchBox::placeholder {
+    color: var(--txt3);
+}
+
+.searchBox:focus {
+    border-color: var(--green);
+}
+
+/* Search result tiles */
+.searchResult {
+    display: inline-block;
+    position: relative;
+    width: 130px;
+    height: 130px;
+    background-color: var(--bg2);
+    background-size: cover;
+    background-position: center;
+    color: white;
+    font-size: 12px;
+    text-align: center;
+    overflow: hidden;
+    margin: 5px;
+    cursor: pointer;
+    border-radius: var(--radius);
+    transition: transform .15s, box-shadow .2s;
+}
+
+.searchResult:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 20px rgba(0,0,0,.5) !important;
+}
+
+.searchResult:hover .filterOverText {
+    opacity: 1;
+}
+
+.filterOverText {
+    background: linear-gradient(transparent 0%, rgba(0,0,0,.4) 30%, rgba(0,0,0,.9) 100%);
+    opacity: 1;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 60%;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    padding: 0;
+    transition: opacity .2s;
+}
+
+.tileTextWrap {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    padding: 6px 8px;
+    background: rgba(0,0,0,.75);
+    text-align: center;
+    backdrop-filter: blur(2px);
+}
+
+.tileName {
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.3;
+    color: #fff;
+    text-shadow: 0 1px 3px rgba(0,0,0,.9);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tileArtist {
+    font-size: 10px;
+    font-weight: 500;
+    line-height: 1.3;
+    color: var(--txt2);
+    text-shadow: 0 1px 2px rgba(0,0,0,.8);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 1px;
+}
+
+/* ============================================================
+   GENRE SELECTOR
+   ============================================================ */
+
+.genreCategoryList {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 0 8px 12px;
+}
+
+.genreCategory {
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    transition: border-color 0.2s;
+}
+
+.genreCategory:hover {
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.genreCategoryHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.2s;
+}
+
+.genreCategoryHeader:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.genreCategoryTitle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.genreCategoryIcon {
+    font-size: 16px;
+    width: 22px;
+    text-align: center;
+}
+
+.genreCategoryName {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--txt);
+    letter-spacing: 0.02em;
+}
+
+.genreCategoryBadge {
+    font-size: 10px;
+    font-weight: 700;
+    background: var(--genre);
+    color: #fff;
+    padding: 1px 7px;
+    border-radius: 10px;
+    min-width: 16px;
+    text-align: center;
+}
+
+.genreCategoryArrow {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--txt2);
+    transition: transform 0.25s ease;
+    display: inline-block;
+}
+
+.genreCategoryArrow.expanded {
+    transform: rotate(90deg);
+}
+
+.genreGrid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 4px 14px 12px;
+    justify-content: flex-start;
+}
+
+.genreChip {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    user-select: none;
+    transition: all .2s;
+    background: var(--bg2);
+    color: var(--txt2);
+    text-transform: capitalize;
+}
+
+.genreChip:hover {
+    border-color: var(--genre);
+    color: var(--genre);
+}
+
+.genreChipSelected {
+    background: var(--genre);
+    border-color: var(--genre);
+    color: #fff;
+}
+
+.genreChipSelected:hover {
+    background: #7c4edb;
+    border-color: #7c4edb;
+    color: #fff;
+}
+
+.genreLoading {
+    text-align: center;
+    padding: 30px;
+    color: var(--txt3);
+    font-size: 14px;
+}
+
+/* ============================================================
+   SEED PILLS
+   ============================================================ */
+
+.seedPills {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 16px;
+    flex-shrink: 0;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+}
+
+.seedPillsLabel {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    color: var(--txt3);
+    margin-right: 2px;
+}
+
+.pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 14px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
+    animation: pillIn .2s ease;
+}
+
+@keyframes pillIn {
+    from { opacity: 0; transform: scale(.8); }
+    to   { opacity: 1; transform: scale(1); }
+}
+
+.pillIcon {
+    font-size: 10px;
+    opacity: .7;
+}
+
+.pill-song   { background: var(--song); }
+.pill-artist { background: var(--artist); }
+.pill-genre  { background: var(--genre); }
+
+.pillX {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255,255,255,.25);
+    color: #fff;
+    font-size: 12px;
+    line-height: 1;
+    cursor: pointer;
+    margin-left: 2px;
+    transition: background .15s;
+    padding: 0;
+}
+
+.pillX:hover {
+    background: rgba(255,255,255,.5);
+}
+
+/* ============================================================
+   VIBE / FINE-TUNE PANEL
+   ============================================================ */
+
+.vibeSection {
+    flex-shrink: 0;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+}
+
+.vibeToggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 10px 16px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: var(--txt2);
+    font-size: 13px;
+    font-weight: 600;
+    font-family: inherit;
+    transition: color .2s;
+}
+
+.vibeToggle:hover {
+    color: var(--txt);
+}
+
+.vibeToggleOpen {
+    color: var(--green);
+}
+
+.vibeToggleLabel {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.vibeCount {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 9px;
+    background: var(--green);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.vibeChevron {
+    font-size: 10px;
+    color: var(--txt3);
+    transition: color .2s;
+}
+
+.vibeToggle:hover .vibeChevron {
+    color: var(--txt);
+}
+
+.vibeGrid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 0 16px 12px;
+    animation: fadeUp .2s ease;
+}
+
+.vibeChip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    user-select: none;
+    transition: all .2s;
+    background: var(--bg2);
+    color: var(--txt2);
+    font-family: inherit;
+}
+
+.vibeChip:hover {
+    border-color: var(--green);
+    color: var(--green);
+    background: var(--greenDim);
+}
+
+.vibeChipActive {
+    background: var(--green);
+    border-color: var(--green);
+    color: #fff;
+}
+
+.vibeChipActive:hover {
+    background: var(--greenHov);
+    border-color: var(--greenHov);
+    color: #fff;
+}
+
+.vibeChipIcon {
+    font-size: 14px;
+    line-height: 1;
+}
+
+.vibeClear {
+    padding: 6px 12px;
+    border: 1px dashed var(--border);
+    border-radius: 18px;
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    background: none;
+    color: var(--txt3);
+    font-family: inherit;
+    transition: all .2s;
+}
+
+.vibeClear:hover {
+    border-color: var(--red);
+    color: var(--red);
+}
+
+/* ============================================================
+   FINE-TUNE BAR
+   ============================================================ */
+
+.tuneBar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    flex-shrink: 0;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+}
+
+.tuneToggle {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: none;
+    border: none;
+    color: var(--txt2);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px 0;
+    cursor: pointer;
+    transition: color .2s;
+}
+
+.tuneToggle:hover { color: var(--txt); }
+
+.genBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 22px;
+    background: var(--green);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    border: none;
+    border-radius: 20px;
+    transition: all .2s;
+}
+
+.genBtn:hover:not(:disabled) {
+    background: var(--greenHov);
+    transform: scale(1.03);
+}
+
+.genBtn:disabled {
+    background: var(--bg3);
+    color: var(--txt3);
+    cursor: default;
+}
+
+.genBtnFull {
+    flex: 1;
+    justify-content: center;
+    padding: 12px 22px;
+    font-size: 14px;
+    border-radius: 8px;
+}
+
+.genRow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+}
+
+.trackLimitSelect {
+    appearance: none;
+    -webkit-appearance: none;
+    background: var(--bg2);
+    color: var(--txt);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 28px 10px 12px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: border-color 0.2s;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23888'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    min-width: 64px;
+    text-align: center;
+}
+
+.trackLimitSelect:hover {
+    border-color: var(--green);
+}
+
+.trackLimitSelect:focus {
+    outline: none;
+    border-color: var(--green);
+    box-shadow: 0 0 0 2px rgba(29, 185, 84, 0.2);
+}
+
+.trackLimitSelect:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.genCount {
+    background: rgba(255,255,255,.2);
+    padding: 1px 7px;
+    border-radius: 10px;
+    font-size: 11px;
+}
+
+/* ============================================================
+   TUNING PANEL (expanded)
+   ============================================================ */
+
+.tuningPanel {
+    padding: 12px 16px;
+    background: var(--bg1);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.tuningTitle {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--txt);
+    margin: 0 0 2px;
+}
+
+.tuningSubtitle {
+    font-size: 12px;
+    color: var(--txt3);
+    margin: 0 0 12px;
+}
+
+.tuningTrackCount {
+    margin-bottom: 10px;
+    font-size: 13px;
+    color: var(--txt2);
+}
+
+.trackCountInput {
+    width: 55px;
+    height: 28px;
+    font-size: 13px;
+    text-align: center;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg3);
+    color: var(--txt);
+    outline: none;
+    margin-left: 6px;
+}
+
+.trackCountInput:focus { border-color: var(--green); }
+
+.tuningKeyMode {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 12px;
+    font-size: 13px;
+    color: var(--txt2);
+}
+
+.tuningSelect {
+    height: 28px;
+    font-size: 13px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0 8px;
+    background: var(--bg3);
+    color: var(--txt);
+    outline: none;
+    margin-left: 6px;
+    cursor: pointer;
+}
+
+.tuningSelect:focus { border-color: var(--green); }
+
+.tuningAttributesList {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    margin-bottom: 12px;
+}
+
+.tuningAttribute {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    transition: all .2s;
+    background: var(--bg2);
+}
+
+.tuningActive {
+    border-color: var(--green);
+    background: var(--greenDim);
+}
+
+.tuningInactive {
+    opacity: .7;
+}
+
+.tuningHeader {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    cursor: pointer;
+    gap: 8px;
+}
+
+.tuningHeader:hover { background: rgba(255,255,255,.04); }
+
+.tuningAttrToggle {
+    font-size: 11px;
+    color: var(--green);
+    width: 14px;
+    flex-shrink: 0;
+}
+
+.tuningLabel {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--txt);
+    min-width: 110px;
+}
+
+.tuningDesc {
+    font-size: 11px;
+    color: var(--txt3);
+}
+
+.tuningControls {
+    padding: 4px 12px 10px 34px;
+}
+
+.tuningModeSelect {
+    display: flex;
+    gap: 3px;
+    margin-bottom: 8px;
+}
+
+.tuningModeBtn {
+    padding: 3px 10px;
+    font-size: 11px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--bg2);
+    color: var(--txt2);
+    cursor: pointer;
+    transition: all .15s;
+    font-family: inherit;
+}
+
+.tuningModeBtn:hover { border-color: var(--green); color: var(--green); }
+
+.tuningModeBtnActive {
+    background: var(--green);
+    color: #fff;
+    border-color: var(--green);
+}
+
+.tuningSliderRow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.tuningSliderLabel {
+    font-size: 11px;
+    color: var(--txt3);
+    width: 28px;
+    flex-shrink: 0;
+}
+
+.tuningSlider {
+    flex: 1;
+    height: 4px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: var(--bg3);
+    border-radius: 2px;
+    outline: none;
+}
+
+.tuningSlider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--green);
+    cursor: pointer;
+    border: 2px solid var(--bg);
+    box-shadow: 0 1px 4px rgba(0,0,0,.3);
+}
+
+.tuningSlider::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--green);
+    cursor: pointer;
+    border: 2px solid var(--bg);
+}
+
+.tuningValue {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--txt);
+    min-width: 50px;
+    text-align: right;
+}
+
+.generateButton {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    background: var(--green);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 700;
+    border: none;
+    border-radius: 24px;
+    cursor: pointer;
+    transition: background .2s, transform .1s;
+    font-family: inherit;
+}
+
+.generateButton:hover {
+    background: var(--greenHov);
+    transform: scale(1.01);
+}
+
+.generateButton:active { transform: scale(.99); }
+
+/* ============================================================
+   RESULTS AREA
+   ============================================================ */
+
+.resultsArea {
+    flex: 1;
+    overflow-y: auto;
+    background: var(--bg);
+}
+
+.rMsg {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 40px 20px;
+    font-size: 14px;
+    color: var(--txt2);
+}
+
+.rErr { color: var(--red); }
+.rMuted { color: var(--txt3); font-size: 13px; }
+
+.rBar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--txt2);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 2;
+}
+
+.rAddAll {
+    padding: 5px 14px;
+    background: var(--greenDim);
+    color: var(--green);
+    font-size: 12px;
+    font-weight: 700;
+    border: 1px solid var(--green);
+    border-radius: 14px;
+    cursor: pointer;
+    transition: all .2s;
+}
+
+.rAddAll:hover {
+    background: var(--green);
+    color: #fff;
+}
+
+/* Loading spinner */
+.spin {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--bg3);
+    border-top-color: var(--green);
+    border-radius: 50%;
+    animation: spinAnim .7s linear infinite;
+}
+
+@keyframes spinAnim {
+    to { transform: rotate(360deg); }
+}
+
+/* ============================================================
+   TRACK ROWS (recommendations + playlist)
+   ============================================================ */
+
+.trkList {
+    padding: 0;
+}
+
+.trkRow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 16px;
+    transition: background .15s;
+}
+
+.trkRow:hover {
+    background: var(--bg2);
+}
+
+.trkImg {
+    width: 40px;
+    height: 40px;
+    border-radius: 4px;
+    object-fit: cover;
+    flex-shrink: 0;
+    background: var(--bg3);
+}
+
+.trkInfo {
+    flex: 1;
+    min-width: 0;
+}
+
+.trkName {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--txt);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.trkArtist {
+    font-size: 11px;
+    color: var(--txt3);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 1px;
+}
+
+.trkDur {
+    font-size: 11px;
+    color: var(--txt3);
+    flex-shrink: 0;
+    min-width: 36px;
+    text-align: right;
+}
+
+.trkAdd {
+    width: 28px;
+    height: 28px;
+    border: 1px solid var(--green);
+    border-radius: 50%;
+    background: transparent;
+    color: var(--green);
+    font-size: 16px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all .15s;
+    padding: 0;
+    line-height: 1;
+}
+
+.trkAdd:hover:not(:disabled) {
+    background: var(--green);
+    color: #fff;
+}
+
+.trkAdded {
+    background: var(--green);
+    color: #fff;
+    border-color: var(--green);
+    cursor: default;
+    font-size: 13px;
+}
+
+/* ============================================================
+   PLAYLIST BUILDER (right panel)
+   ============================================================ */
+
+.playlistBuilder {
+    padding: 20px 16px;
+}
+
+.playlistBuilderTitle {
+    font-size: 18px;
+    font-weight: 800;
+    color: #fff;
+    margin: 0 0 4px;
+}
+
+.playlistBuilderSubtitle {
+    font-size: 12px;
+    color: var(--txt3);
+    margin: 0 0 16px;
+}
+
+.playlistForm {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.playlistNameInput {
+    width: 100%;
+    height: 40px;
+    font-size: 14px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0 12px;
+    color: var(--txt);
+    outline: none;
+    transition: border-color .2s;
+}
+
+.playlistNameInput::placeholder { color: var(--txt3); }
+.playlistNameInput:focus { border-color: var(--green); }
+
+.playlistDescInput {
+    width: 100%;
+    font-size: 13px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 8px 12px;
+    color: var(--txt);
+    outline: none;
+    resize: vertical;
+    transition: border-color .2s;
+}
+
+.playlistDescInput::placeholder { color: var(--txt3); }
+.playlistDescInput:focus { border-color: var(--green); }
+
+.publicToggle {
+    font-size: 12px;
+    color: var(--txt2);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+}
+
+.publicToggle input { accent-color: var(--green); }
+
+.playlistError {
+    color: var(--red);
+    font-size: 12px;
+    margin-bottom: 8px;
+    padding: 8px 10px;
+    background: rgba(231,76,60,.1);
+    border-radius: var(--radius);
+    border: 1px solid rgba(231,76,60,.2);
+}
+
+.playlistTrackList {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    margin-bottom: 14px;
+    max-height: calc(100vh - 420px);
+    overflow-y: auto;
+}
+
+.playlistEmpty {
+    text-align: center;
+    padding: 30px 16px;
+    color: var(--txt3);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.playlistTrackRow {
+    display: flex;
+    align-items: center;
+    background: var(--bg2);
+    border-radius: 6px;
+    padding: 5px 8px;
+    gap: 8px;
+    transition: background .15s;
+}
+
+.playlistTrackRow:hover {
+    background: var(--bg3);
+}
+
+.playlistTrackNum {
+    font-size: 11px;
+    color: var(--txt3);
+    width: 20px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.playlistTrackThumb {
+    width: 36px;
+    height: 36px;
+    border-radius: 4px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.playlistTrackInfo {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.playlistTrackName {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--txt);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.playlistTrackArtist {
+    font-size: 10px;
+    color: var(--txt3);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.playlistRemoveBtn {
+    width: 24px;
+    height: 24px;
+    border: none;
+    background: transparent;
+    color: var(--txt3);
+    font-size: 14px;
+    cursor: pointer;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all .15s;
+}
+
+.playlistRemoveBtn:hover {
+    background: rgba(231,76,60,.15);
+    color: var(--red);
+}
+
+.savePlaylistButton {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    background: var(--green);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    border: none;
+    border-radius: 24px;
+    cursor: pointer;
+    transition: all .2s;
+    font-family: inherit;
+}
+
+.savePlaylistButton:hover {
+    background: var(--greenHov);
+    transform: scale(1.01);
+}
+
+.savePlaylistButton:disabled {
+    background: var(--bg3);
+    color: var(--txt3);
+    cursor: default;
+    transform: none;
+}
+
+.playlistActions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.clearPlaylistBtn {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    background: transparent;
+    color: var(--txt3);
+    font-size: 13px;
+    font-weight: 500;
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    cursor: pointer;
+    transition: all .2s;
+    font-family: inherit;
+}
+
+.clearPlaylistBtn:hover {
+    border-color: var(--red);
+    color: var(--red);
+    background: rgba(231, 76, 60, 0.08);
+}
+
+.playlistSavedBanner {
+    background: var(--greenDim);
+    border: 1px solid var(--green);
+    border-radius: var(--radius);
+    padding: 14px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--green);
+    margin-bottom: 14px;
+}
+
+.openSpotifyLink {
+    display: block;
+    margin-top: 6px;
+    color: var(--green);
+    text-decoration: none;
+    font-size: 13px;
+}
+
+.openSpotifyLink:hover { text-decoration: underline; }
+
+.newPlaylistBtn {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 7px 18px;
+    border: 1px solid var(--green);
+    border-radius: 18px;
+    background: transparent;
+    color: var(--green);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .2s;
+    font-family: inherit;
+}
+
+.newPlaylistBtn:hover {
+    background: var(--green);
+    color: #fff;
+}
+
+/* ============================================================
+   SINGLE-PANEL MODE (no playlist tracks yet)
+   ============================================================ */
+
+.singlePanel .panelLeft {
+    border-right: none;
+    max-width: 860px;
+    margin: 0 auto;
+}
+
+/* ============================================================
+   WELCOME HERO
+   ============================================================ */
+
+.welcomeHero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 60px 24px 40px;
+    animation: fadeUp .5s ease;
+}
+
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.heroWave {
+    margin-bottom: 18px;
+    opacity: .5;
+}
+
+.heroTitle {
+    font-size: 22px;
+    font-weight: 800;
+    color: #fff;
+    margin: 0 0 10px;
+    letter-spacing: -.3px;
+}
+
+.heroDesc {
+    font-size: 14px;
+    color: var(--txt2);
+    max-width: 440px;
+    line-height: 1.6;
+    margin: 0 0 28px;
+}
+
+.heroSteps {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.heroStep {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--txt2);
+    background: var(--bg2);
+    padding: 8px 14px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+}
+
+.heroStepNum {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--green);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.heroStepArrow {
+    color: var(--txt3);
+    font-size: 16px;
+}
+
+.heroCta {
+    font-size: 13px;
+    color: var(--txt3);
+    margin: 0;
+    font-style: italic;
+}
+
+/* ============================================================
+   CONTEXTUAL HINTS
+   ============================================================ */
+
+.stepHint {
+    font-size: 14px !important;
+}
+
+.rHint {
+    padding: 8px 16px 4px;
+    font-size: 12px;
+    color: var(--txt3);
+    background: var(--greenDim);
+    border-bottom: 1px solid var(--border);
+}
+
+/* ============================================================
+   PANEL REVEAL ANIMATION
+   ============================================================ */
+
+.panelReveal {
+    animation: slideIn .35s ease;
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(20px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ============================================================
+   SPOTIFY CONNECT PROMPT (playlist builder)
+   ============================================================ */
+
+.spotifyPrompt {
+    text-align: center;
+    padding: 14px;
+    background: var(--bg2);
+    border-radius: var(--radiusLg);
+    border: 1px dashed var(--border);
+}
+
+.spotifyPromptText {
+    font-size: 13px;
+    color: var(--txt2);
+    margin: 0 0 10px;
+    line-height: 1.4;
+}
+
+.spotifyPromptBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 22px;
+    background: #1DB954;
+    color: #fff;
+    border: none;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all .2s;
+    font-family: inherit;
+}
+
+.spotifyPromptBtn:hover {
+    background: var(--greenHov);
+    transform: scale(1.03);
+}
+
+.spotifyPromptBtn svg {
+    flex-shrink: 0;
+}
+
+/* ============================================================
+   SCROLLBAR STYLING
+   ============================================================ */
+
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--bg3);
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #444;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+
+@media (max-width: 800px) {
+    .mainLayout {
+        flex-direction: column;
+    }
+    .panelRight {
+        width: 100%;
+        border-top: 1px solid var(--border);
+    }
+    .panelLeft {
+        border-right: none;
+    }
+    .playlistTrackList {
+        max-height: 300px;
+    }
+}

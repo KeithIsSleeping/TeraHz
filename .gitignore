@@ -1,0 +1,23 @@
+# Environment & secrets
+.env
+.env.local
+.env.production
+
+# Dependencies
+node_modules/
+
+# Build output
+client/build/
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# IDE
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*
