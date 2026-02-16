@@ -28,6 +28,8 @@ class SiteContent extends React.Component {
             trackLimit: 30,
             popularityRange: [0, 100],
             decadeFilter: 'any',
+            excludeExplicit: false,
+            sortBy: 'default',
             flyingTrack: null,
             seedsScrolledPast: false,
             recsScrolledPast: false,
@@ -146,7 +148,9 @@ class SiteContent extends React.Component {
             activeVibes: this.state.activeVibes,
             trackLimit: this.state.trackLimit,
             popularityRange: this.state.popularityRange,
-            decadeFilter: this.state.decadeFilter
+            decadeFilter: this.state.decadeFilter,
+            excludeExplicit: this.state.excludeExplicit,
+            sortBy: this.state.sortBy
         };
         try {
             sessionStorage.setItem('terahz_state', JSON.stringify(toSave));
@@ -171,7 +175,9 @@ class SiteContent extends React.Component {
                     activeVibes: parsed.activeVibes || [],
                     trackLimit: parsed.trackLimit || 30,
                     popularityRange: parsed.popularityRange || [0, 100],
-                    decadeFilter: parsed.decadeFilter || 'any'
+                    decadeFilter: parsed.decadeFilter || 'any',
+                    excludeExplicit: parsed.excludeExplicit || false,
+                    sortBy: parsed.sortBy || 'default'
                 });
                 sessionStorage.removeItem('terahz_state');
             }
@@ -364,7 +370,7 @@ class SiteContent extends React.Component {
     }
 
     renderVibePanel() {
-        const { showVibes, activeVibes, popularityRange, decadeFilter } = this.state;
+        const { showVibes, activeVibes, popularityRange, decadeFilter, excludeExplicit, sortBy } = this.state;
         const VIBES = [
             { id: 'danceable',  label: 'Danceable',  icon: '💃' },
             { id: 'energetic',  label: 'Energetic',  icon: '⚡' },
@@ -397,7 +403,16 @@ class SiteContent extends React.Component {
             return min + '–' + max;
         };
 
-        const hasFilters = activeVibes.length > 0 || popularityRange[0] !== 0 || popularityRange[1] !== 100 || decadeFilter !== 'any';
+        const SORT_OPTIONS = [
+            { id: 'default',    label: 'Default' },
+            { id: 'pop-high',   label: 'Most Popular' },
+            { id: 'pop-low',    label: 'Least Popular' },
+            { id: 'newest',     label: 'Newest' },
+            { id: 'oldest',     label: 'Oldest' },
+            { id: 'name',       label: 'A → Z' },
+        ];
+
+        const hasFilters = activeVibes.length > 0 || popularityRange[0] !== 0 || popularityRange[1] !== 100 || decadeFilter !== 'any' || excludeExplicit || sortBy !== 'default';
 
         return (
             <div className="vibeSection">
@@ -481,8 +496,36 @@ class SiteContent extends React.Component {
                             </div>
                         </div>
 
+                        {/* Exclude explicit */}
+                        <div className="filterGroup">
+                            <label className="filterToggle" onClick={() => this.setState(prev => ({ excludeExplicit: !prev.excludeExplicit }))}>
+                                <span className="filterToggleTrack">
+                                    <span className={'filterToggleThumb' + (excludeExplicit ? ' filterToggleOn' : '')} />
+                                </span>
+                                <span>🚫 Hide explicit tracks</span>
+                            </label>
+                        </div>
+
+                        {/* Sort */}
+                        <div className="filterGroup">
+                            <div className="filterLabel">
+                                <span>↕️ Sort by</span>
+                            </div>
+                            <div className="decadeGrid">
+                                {SORT_OPTIONS.map(s => (
+                                    <button
+                                        key={s.id}
+                                        className={'decadeChip' + (sortBy === s.id ? ' decadeChipActive' : '')}
+                                        onClick={() => this.setState({ sortBy: s.id })}
+                                    >
+                                        {s.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
                         {hasFilters && (
-                            <button className="vibeClear" onClick={() => this.setState({ activeVibes: [], popularityRange: [0, 100], decadeFilter: 'any' })}>
+                            <button className="vibeClear" onClick={() => this.setState({ activeVibes: [], popularityRange: [0, 100], decadeFilter: 'any', excludeExplicit: false, sortBy: 'default' })}>
                                 Clear all filters
                             </button>
                         )}
@@ -493,14 +536,15 @@ class SiteContent extends React.Component {
     }
 
     getFilteredTracks() {
-        const { recommendedTracks, popularityRange, decadeFilter } = this.state;
+        const { recommendedTracks, popularityRange, decadeFilter, excludeExplicit, sortBy } = this.state;
         const [minPop, maxPop] = popularityRange;
         const hasPopFilter = minPop !== 0 || maxPop !== 100;
         const hasDecadeFilter = decadeFilter !== 'any';
+        const hasAnyFilter = hasPopFilter || hasDecadeFilter || excludeExplicit;
 
-        if (!hasPopFilter && !hasDecadeFilter) return recommendedTracks;
-
-        return recommendedTracks.filter(track => {
+        let tracks = hasAnyFilter ? recommendedTracks.filter(track => {
+            // Explicit filter
+            if (excludeExplicit && track.explicit) return false;
             // Popularity filter
             if (hasPopFilter) {
                 const pop = track.popularity || 0;
@@ -524,7 +568,31 @@ class SiteContent extends React.Component {
                 }
             }
             return true;
-        });
+        }) : [...recommendedTracks];
+
+        // Sort
+        if (sortBy !== 'default') {
+            tracks = [...tracks].sort((a, b) => {
+                switch (sortBy) {
+                    case 'pop-high': return (b.popularity || 0) - (a.popularity || 0);
+                    case 'pop-low':  return (a.popularity || 0) - (b.popularity || 0);
+                    case 'newest': {
+                        const da = (a.album && a.album.release_date) || '';
+                        const db = (b.album && b.album.release_date) || '';
+                        return db.localeCompare(da);
+                    }
+                    case 'oldest': {
+                        const da = (a.album && a.album.release_date) || 'zzzz';
+                        const db = (b.album && b.album.release_date) || 'zzzz';
+                        return da.localeCompare(db);
+                    }
+                    case 'name': return (a.name || '').localeCompare(b.name || '');
+                    default: return 0;
+                }
+            });
+        }
+
+        return tracks;
     }
 
     renderWelcomeHero() {
