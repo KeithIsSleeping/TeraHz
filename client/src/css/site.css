@@ -1629,15 +1629,52 @@ button { cursor: pointer; }
 @media (max-width: 800px) {
     .mainLayout {
         flex-direction: column;
+        overflow-y: auto;          /* allow the whole layout to scroll */
+        overflow-x: hidden;
+    }
+    .panelLeft {
+        flex: none;                /* don't flex-grow; let it size to content */
+        overflow: visible;         /* children flow naturally in the scroll */
+        border-right: none;
+        min-height: 0;
     }
     .panelRight {
         width: 100%;
         border-top: 1px solid var(--border);
+        flex: none;
     }
-    .panelLeft {
-        border-right: none;
+
+    /* Reduce search area on mobile */
+    .searchArea {
+        max-height: 240px;
     }
+
+    /* Cap seed pills so they don't push everything off-screen */
+    .seedPills {
+        max-height: 90px;
+        overflow-y: auto;
+    }
+
+    /* Results flow in the page scroll instead of their own scroll */
+    .resultsArea {
+        flex: none;
+        overflow: visible;
+        min-height: 200px;
+    }
+
+    /* Track list flows naturally */
+    .trkList {
+        max-height: none;
+        overflow: visible;
+    }
+
     .playlistTrackList {
         max-height: 300px;
+    }
+
+    /* Genre selector – limit height */
+    .genreCategoryList {
+        max-height: 260px;
+        overflow-y: auto;
     }
 }
