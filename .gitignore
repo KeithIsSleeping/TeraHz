@@ -9,6 +9,14 @@ node_modules/
 # Build output
 client/build/
 
+# Deployment artifacts
+*.zip
+deploy/
+applog/
+
+# Azure CLI metadata
+.azure/
+
 # OS files
 Thumbs.db
 .DS_Store
